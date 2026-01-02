@@ -42,7 +42,9 @@ async def register(user_data: UserCreate):
     # Create user document
     user_dict = user_data.dict(exclude={"password"})
     user_dict["hashed_password"] = get_password_hash(user_data.password)
-    user_dict["created_at"] = user_dict["updated_at"] = user_dict.get("created_at")
+    user_dict["created_at"] = datetime.utcnow()
+    user_dict["updated_at"] = datetime.utcnow()
+    user_dict["is_active"] = True
     
     # Insert user into database
     result = users_collection.insert_one(user_dict)

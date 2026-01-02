@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field
+from pydantic_core import core_schema
 from typing import Optional
 from datetime import datetime
 from bson import ObjectId
@@ -6,18 +7,23 @@ from bson import ObjectId
 
 class PyObjectId(ObjectId):
     @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
+    def __get_pydantic_core_schema__(cls, source_type, handler):
+        return core_schema.with_info_plain_validator_function(
+            cls.validate,
+            serialization=core_schema.plain_serializer_function_ser_schema(
+                lambda x: str(x),
+                return_schema=core_schema.str_schema(),
+            ),
+        )
 
     @classmethod
-    def validate(cls, v):
-        if not ObjectId.is_valid(v):
-            raise ValueError("Invalid objectid")
-        return ObjectId(v)
-
-    @classmethod
-    def __modify_schema__(cls, field_schema):
-        field_schema.update(type="string")
+    def validate(cls, v, info):
+        if isinstance(v, ObjectId):
+            return v
+        if isinstance(v, str):
+            if ObjectId.is_valid(v):
+                return ObjectId(v)
+        raise ValueError("Invalid ObjectId")
 
 
 class UserBase(BaseModel):
@@ -38,7 +44,7 @@ class UserInDB(UserBase):
     is_active: bool = True
 
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
         arbitrary_types_allowed = True
         json_encoders = {ObjectId: str}
 
@@ -50,7 +56,7 @@ class UserResponse(UserBase):
     is_active: bool
 
     class Config:
-        allow_population_by_field_name = True
+        populate_by_name = True
         json_encoders = {ObjectId: str}
 
 
