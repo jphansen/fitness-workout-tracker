@@ -57,6 +57,7 @@ class WorkoutCreate(BaseModel):
     workout_type: str = Field(..., description="Workout type (A, B, C, D)")
     exercises: List[Exercise] = Field(..., description="List of exercises")
     notes: Optional[str] = Field(None, description="Overall workout notes")
+    user_id: Optional[str] = Field(None, description="User ID (will be set from auth token)")
     
     class Config:
         json_schema_extra = {

@@ -10,6 +10,7 @@ class WorkoutTemplateCreate(BaseModel):
     name: str = Field(..., description="Template name")
     description: str = Field(..., description="Template description")
     exercises: List[Exercise] = Field(..., description="Predefined exercises")
+    user_id: Optional[str] = Field(None, description="User ID (will be set from auth token)")
     
     class Config:
         json_schema_extra = {

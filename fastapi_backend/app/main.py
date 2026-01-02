@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
-from app.routes import workouts, templates
+from app.routes import workouts, templates, auth
 from app.database.mongodb import mongodb
 
 # Create FastAPI app
@@ -24,6 +24,7 @@ app.add_middleware(
 )
 
 # Include routers
+app.include_router(auth.router)
 app.include_router(workouts.router)
 app.include_router(templates.router)
 
