@@ -51,7 +51,7 @@ dependencies:
   flex_color_scheme: ^8.4.0
   
   # Secure storage for authentication tokens
-  flutter_secure_storage: ^11.0.0
+  flutter_secure_storage: ^10.0.0
 
 dev_dependencies:
   flutter_test:
