@@ -1,0 +1,68 @@
+We need a flutter app to be used for tracking workout. It should be very intuitive to use, so all data may be presented in the app, and then the user just adjust data or approve / decline the suggested data.
+
+The first part of the application will be "Workout log", here we are basically tracking workout based on following parameters:
+
+Date
+Workout Type (A/B/C/D)
+Exercise
+Weight (kg)
+Reps
+Sets
+RPE (1-10 scale)
+Notes
+Total Volume (Weight × Reps × Sets)
+
+Date: should be =now() but we should be able to change that.
+Workout types are the following (A-D) types:
+
+A:
+1. Warm-up: 5 min (rowing machine or cross-trainer)
+2. Strength (30 min):
+   - Chest Press Machine: 3×8-12 (2 min rest)
+   - Lat Pulldown: 3×8-12 (2 min rest)
+   - Shoulder Press Machine: 3×10-15 (90 sec rest)
+   - Seated Row: 3×10-15 (90 sec rest)
+   - Bicep Curls: 2×12-15 (60 sec rest)
+   - Triceps Pushdown: 2×12-15 (60 sec rest)
+3. HIIT Finisher: 5 min
+   - 30 sec sprint / 30 sec walk on treadmill
+   - Repeat 5 times
+
+B: 
+1. Warm-up: 5 min (cycling)
+2. Strength (25 min):
+   - Leg Press: 3×8-12 (2 min rest)
+   - Leg Curl: 3×10-15 (90 sec rest)
+   - Leg Extension: 3×10-15 (90 sec rest)
+   - Calf Raises: 3×15-20 (60 sec rest)
+   - Glute Machine: 2×12-15 (60 sec rest)
+3. Steady Cardio: 10 min
+   - Cross-trainer at 70% max effort
+
+C:
+Circuit format (3 rounds, minimal rest between exercises):
+1. Kettlebell Swings: 45 sec / 15 sec rest
+2. Push-ups (or Chest Press): 45 sec / 15 sec rest
+3. Bodyweight Squats: 45 sec / 15 sec rest
+4. Dumbbell Rows: 45 sec / 15 sec rest
+5. Plank: 45 sec / 15 sec rest
+6. Rest 2 min between rounds
+
+D:
+- Choose different cardio each week:
+  Week 1: Incline treadmill walk
+  Week 2: Cycling intervals
+  Week 3: Rowing intervals
+  Week 4: Stair machine
+- Heart rate zone 2 (60-70% max)
+
+
+So, the app should have the four mentioned types (A-D) and if we for example take C:1 (Kettlebell Swings: 45 sec / 15 sec rest), then:
+
+Workout Type = "C"
+Exercise = "Kettlebell Swings: 45 sec / 15 sec rest"
+Weight = (fill out standard 10)
+Reps = (fill out standard 15)
+Sets = (fill out standard 3)
+RPE = (fill out standard 5)
+
