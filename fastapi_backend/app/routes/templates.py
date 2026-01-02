@@ -3,7 +3,9 @@ from fastapi import APIRouter, HTTPException, status
 from bson import ObjectId
 
 from app.database.mongodb import get_templates_collection
-from app.models.template import WorkoutTemplate, WORKOUT_TEMPLATES
+from app.models.template import (
+    WorkoutTemplate, WorkoutTemplateCreate, WorkoutTemplateUpdate, WORKOUT_TEMPLATES
+)
 
 router = APIRouter(prefix="/templates", tags=["templates"])
 
@@ -52,6 +54,91 @@ def get_templates_by_type(workout_type: str):
     
     templates = list(collection.find({"workout_type": workout_type.upper()}))
     return templates
+
+
+@router.post("/", response_model=WorkoutTemplate, status_code=status.HTTP_201_CREATED)
+def create_template(template: WorkoutTemplateCreate):
+    """Create a new workout template"""
+    collection = get_templates_collection()
+    
+    # Create WorkoutTemplate instance
+    template_in_db = WorkoutTemplate(**template.model_dump())
+    
+    # Prepare document for insertion
+    template_dict = template_in_db.model_dump(by_alias=True, exclude={"id"})
+    # Add _id as ObjectId
+    template_dict["_id"] = template_in_db.id
+    
+    # Insert into database
+    result = collection.insert_one(template_dict)
+    
+    # Retrieve the created template
+    created_template = collection.find_one({"_id": result.inserted_id})
+    
+    return created_template
+
+
+@router.put("/{template_id}", response_model=WorkoutTemplate)
+def update_template(template_id: str, template_update: WorkoutTemplateUpdate):
+    """Update an existing template"""
+    collection = get_templates_collection()
+    
+    # Try to find by ObjectId first
+    existing = None
+    if ObjectId.is_valid(template_id):
+        existing = collection.find_one({"_id": ObjectId(template_id)})
+    
+    # If not found by ObjectId, try as string
+    if not existing:
+        existing = collection.find_one({"_id": template_id})
+    
+    if not existing:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Template not found"
+        )
+    
+    # Prepare update data
+    update_data = template_update.model_dump(exclude_unset=True)
+    
+    # Perform update - use the same ID format as found
+    if ObjectId.is_valid(template_id) and isinstance(existing.get("_id"), ObjectId):
+        query_id = ObjectId(template_id)
+    else:
+        query_id = template_id
+    
+    collection.update_one(
+        {"_id": query_id},
+        {"$set": update_data}
+    )
+    
+    # Return updated template
+    updated_template = collection.find_one({"_id": query_id})
+    
+    return updated_template
+
+
+@router.delete("/{template_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_template(template_id: str):
+    """Delete a template"""
+    collection = get_templates_collection()
+    
+    # Try to delete by ObjectId first
+    deleted_count = 0
+    if ObjectId.is_valid(template_id):
+        result = collection.delete_one({"_id": ObjectId(template_id)})
+        deleted_count = result.deleted_count
+    
+    # If not deleted by ObjectId, try as string
+    if deleted_count == 0:
+        result = collection.delete_one({"_id": template_id})
+        deleted_count = result.deleted_count
+    
+    if deleted_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Template not found"
+        )
 
 
 @router.post("/seed", response_model=List[WorkoutTemplate])

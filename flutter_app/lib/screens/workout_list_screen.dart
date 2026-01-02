@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/workout_provider.dart';
 import '../models/workout.dart';
+import 'create_workout_screen.dart';
+import 'workout_detail_screen.dart';
+import 'template_list_screen.dart';
 
 class WorkoutListScreen extends StatefulWidget {
   const WorkoutListScreen({super.key});
@@ -38,15 +41,98 @@ class _WorkoutListScreenState extends State<WorkoutListScreen> {
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () {
-              // TODO: Navigate to create workout screen
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Create workout feature coming soon!'),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CreateWorkoutScreen(),
                 ),
               );
             },
           ),
         ],
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.fitness_center, size: 48, color: Colors.white),
+                  SizedBox(height: 12),
+                  Text(
+                    'Fitness Tracker',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    'Track your workouts',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.list),
+              title: const Text('Workouts'),
+              onTap: () {
+                Navigator.pop(context);
+              },
+              selected: true,
+            ),
+            ListTile(
+              leading: const Icon(Icons.folder_copy),
+              title: const Text('Templates'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const TemplateListScreen(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.bar_chart),
+              title: const Text('Statistics'),
+              onTap: () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Statistics coming soon')),
+                );
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text('Settings'),
+              onTap: () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Settings coming soon')),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.help),
+              title: const Text('Help & Feedback'),
+              onTap: () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Help coming soon')),
+                );
+              },
+            ),
+          ],
+        ),
       ),
       body: Consumer<WorkoutProvider>(
         builder: (context, provider, child) {
@@ -89,10 +175,10 @@ class _WorkoutListScreenState extends State<WorkoutListScreen> {
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
                     onPressed: () {
-                      // TODO: Navigate to create workout screen
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Create workout feature coming soon!'),
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CreateWorkoutScreen(),
                         ),
                       );
                     },
@@ -115,10 +201,10 @@ class _WorkoutListScreenState extends State<WorkoutListScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // TODO: Navigate to create workout screen
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Create workout feature coming soon!'),
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const CreateWorkoutScreen(),
             ),
           );
         },
@@ -163,10 +249,18 @@ class _WorkoutListScreenState extends State<WorkoutListScreen> {
           },
         ),
         onTap: () {
-          // TODO: Navigate to workout detail screen
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Viewing workout ${workout.id}'),
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => WorkoutDetailScreen(workout: workout),
+            ),
+          );
+        },
+        onLongPress: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CreateWorkoutScreen(workoutToEdit: workout),
             ),
           );
         },

@@ -42,6 +42,16 @@ class Workout {
     };
   }
 
+  Map<String, dynamic> toJsonForUpdate() {
+    return {
+      'date': date.toIso8601String(),
+      'workout_type': workoutType,
+      'exercises': exercises.map((e) => e.toJson()).toList(),
+      'notes': notes,
+      'total_volume': totalVolume,
+    };
+  }
+
   String get formattedDate {
     return DateFormat('yyyy-MM-dd HH:mm').format(date);
   }

@@ -122,6 +122,62 @@ class WorkoutProvider with ChangeNotifier {
     }
   }
 
+  Future<WorkoutTemplate> createTemplate(WorkoutTemplate template) async {
+    _setLoading(true);
+    _error = null;
+    
+    try {
+      final createdTemplate = await _apiService.createTemplate(template);
+      _templates.add(createdTemplate);
+      notifyListeners();
+      return createdTemplate;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      rethrow;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<WorkoutTemplate> updateTemplate(String id, WorkoutTemplate template) async {
+    _setLoading(true);
+    _error = null;
+    
+    try {
+      final updatedTemplate = await _apiService.updateTemplate(id, template);
+      final index = _templates.indexWhere((t) => t.id == id);
+      if (index != -1) {
+        _templates[index] = updatedTemplate;
+      }
+      notifyListeners();
+      return updatedTemplate;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      rethrow;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> deleteTemplate(String id) async {
+    _setLoading(true);
+    _error = null;
+    
+    try {
+      await _apiService.deleteTemplate(id);
+      _templates.removeWhere((t) => t.id == id);
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      rethrow;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   Future<void> seedTemplates() async {
     _setLoading(true);
     _error = null;

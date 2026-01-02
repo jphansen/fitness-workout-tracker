@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 
 import 'screens/workout_list_screen.dart';
+import 'screens/template_list_screen.dart';
+import 'screens/create_workout_screen.dart';
+import 'screens/workout_detail_screen.dart';
 import 'services/api_service.dart';
 import 'providers/workout_provider.dart';
 
@@ -59,6 +62,32 @@ class FitnessTrackerApp extends StatelessWidget {
         ).toTheme,
         themeMode: ThemeMode.dark,
         home: const WorkoutListScreen(),
+        onGenerateRoute: (settings) {
+          switch (settings.name) {
+            case '/workouts':
+              return MaterialPageRoute(builder: (_) => const WorkoutListScreen());
+            case '/templates':
+              return MaterialPageRoute(builder: (_) => const TemplateListScreen());
+            case '/create-workout':
+              final args = settings.arguments as Map<String, dynamic>?;
+              final workoutToEdit = args?['workoutToEdit'] as Workout?;
+              final template = args?['template'] as WorkoutTemplate?;
+              return MaterialPageRoute(
+                builder: (_) => CreateWorkoutScreen(
+                  workoutToEdit: workoutToEdit,
+                  template: template,
+                ),
+              );
+            case '/workout-detail':
+              final args = settings.arguments as Map<String, dynamic>?;
+              final workout = args?['workout'] as Workout?;
+              return MaterialPageRoute(
+                builder: (_) => WorkoutDetailScreen(workout: workout),
+              );
+            default:
+              return MaterialPageRoute(builder: (_) => const WorkoutListScreen());
+          }
+        },
         debugShowCheckedModeBanner: false,
       ),
     );

@@ -1,24 +1,19 @@
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel, Field
 from bson import ObjectId
 from .workout import Exercise, PyObjectId
 
 
-class WorkoutTemplate(BaseModel):
-    """Template for predefined workout types A-D"""
-    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
+class WorkoutTemplateCreate(BaseModel):
+    """Model for creating a new workout template"""
     workout_type: str = Field(..., description="Workout type (A, B, C, D)")
     name: str = Field(..., description="Template name")
     description: str = Field(..., description="Template description")
     exercises: List[Exercise] = Field(..., description="Predefined exercises")
     
     class Config:
-        populate_by_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
         json_schema_extra = {
             "example": {
-                "_id": "507f1f77bcf86cd799439012",
                 "workout_type": "C",
                 "name": "Circuit Workout",
                 "description": "Circuit format (3 rounds, minimal rest)",
@@ -40,6 +35,24 @@ class WorkoutTemplate(BaseModel):
                 ]
             }
         }
+
+
+class WorkoutTemplateUpdate(BaseModel):
+    """Model for updating a workout template"""
+    workout_type: Optional[str] = None
+    name: Optional[str] = None
+    description: Optional[str] = None
+    exercises: Optional[List[Exercise]] = None
+
+
+class WorkoutTemplate(WorkoutTemplateCreate):
+    """Template for predefined workout types A-D"""
+    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
+    
+    class Config(WorkoutTemplateCreate.Config):
+        populate_by_name = True
+        arbitrary_types_allowed = True
+        json_encoders = {ObjectId: str}
 
 
 # Predefined templates data

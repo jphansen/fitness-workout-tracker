@@ -94,6 +94,55 @@ class ApiService {
     }
   }
 
+  Future<WorkoutTemplate> getTemplate(String id) async {
+    final response = await client.get(Uri.parse('$baseUrl/templates/$id'));
+    
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = json.decode(response.body);
+      return WorkoutTemplate.fromJson(data);
+    } else {
+      throw Exception('Failed to load template: ${response.statusCode}');
+    }
+  }
+
+  Future<WorkoutTemplate> createTemplate(WorkoutTemplate template) async {
+    final response = await client.post(
+      Uri.parse('$baseUrl/templates/'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(template.toJson()),
+    );
+    
+    if (response.statusCode == 201) {
+      final Map<String, dynamic> data = json.decode(response.body);
+      return WorkoutTemplate.fromJson(data);
+    } else {
+      throw Exception('Failed to create template: ${response.statusCode}');
+    }
+  }
+
+  Future<WorkoutTemplate> updateTemplate(String id, WorkoutTemplate template) async {
+    final response = await client.put(
+      Uri.parse('$baseUrl/templates/$id'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(template.toJson()),
+    );
+    
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = json.decode(response.body);
+      return WorkoutTemplate.fromJson(data);
+    } else {
+      throw Exception('Failed to update template: ${response.statusCode}');
+    }
+  }
+
+  Future<void> deleteTemplate(String id) async {
+    final response = await client.delete(Uri.parse('$baseUrl/templates/$id'));
+    
+    if (response.statusCode != 204) {
+      throw Exception('Failed to delete template: ${response.statusCode}');
+    }
+  }
+
   Future<List<WorkoutTemplate>> seedTemplates() async {
     final response = await client.post(
       Uri.parse('$baseUrl/templates/seed'),
