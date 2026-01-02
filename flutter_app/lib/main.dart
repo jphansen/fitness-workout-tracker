@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 
+import 'screens/login_screen.dart';
 import 'screens/workout_list_screen.dart';
 import 'screens/template_list_screen.dart';
 import 'screens/create_workout_screen.dart';
 import 'screens/create_template_screen.dart';
 import 'screens/workout_detail_screen.dart';
+import 'services/auth_service.dart';
 import 'services/api_service.dart';
 import 'providers/workout_provider.dart';
 import 'models/workout.dart';
@@ -23,8 +25,14 @@ class FitnessTrackerApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        Provider<AuthService>(
+          create: (_) => AuthService(),
+          dispose: (_, authService) => authService.dispose(),
+        ),
         Provider<ApiService>(
-          create: (_) => ApiService(),
+          create: (context) => ApiService(
+            authService: Provider.of<AuthService>(context, listen: false),
+          ),
           dispose: (_, apiService) => apiService.dispose(),
         ),
         ChangeNotifierProvider<WorkoutProvider>(
@@ -64,9 +72,20 @@ class FitnessTrackerApp extends StatelessWidget {
           swapLegacyOnMaterial3: true,
         ).toTheme,
         themeMode: ThemeMode.dark,
-        home: const WorkoutListScreen(),
+        home: Consumer<AuthService>(
+          builder: (context, authService, child) {
+            // Check if user is logged in
+            if (authService.isLoggedIn) {
+              return const WorkoutListScreen();
+            } else {
+              return const LoginScreen();
+            }
+          },
+        ),
         onGenerateRoute: (settings) {
           switch (settings.name) {
+            case '/login':
+              return MaterialPageRoute(builder: (_) => const LoginScreen());
             case '/workouts':
               return MaterialPageRoute(builder: (_) => const WorkoutListScreen());
             case '/templates':
@@ -105,7 +124,7 @@ class FitnessTrackerApp extends StatelessWidget {
                 builder: (_) => WorkoutDetailScreen(workout: workout),
               );
             default:
-              return MaterialPageRoute(builder: (_) => const WorkoutListScreen());
+              return MaterialPageRoute(builder: (_) => const LoginScreen());
           }
         },
         debugShowCheckedModeBanner: false,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/workout_provider.dart';
 import '../models/workout.dart';
+import '../services/auth_service.dart';
 import 'create_workout_screen.dart';
 import 'workout_detail_screen.dart';
 import 'template_list_screen.dart';
@@ -128,6 +129,20 @@ class _WorkoutListScreenState extends State<WorkoutListScreen> {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Help coming soon')),
+                );
+              },
+            ),
+            const Divider(),
+            Consumer<AuthService>(
+              builder: (context, authService, child) {
+                return ListTile(
+                  leading: const Icon(Icons.logout, color: Colors.red),
+                  title: const Text('Logout', style: TextStyle(color: Colors.red)),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    await authService.logout();
+                    Navigator.pushReplacementNamed(context, '/login');
+                  },
                 );
               },
             ),

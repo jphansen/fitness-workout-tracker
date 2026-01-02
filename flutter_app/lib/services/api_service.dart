@@ -2,16 +2,31 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/workout.dart';
 import '../models/workout_template.dart';
+import 'auth_service.dart';
 
 class ApiService {
   static const String baseUrl = 'https://fitness.asvig.com';
   
   final http.Client client;
+  final AuthService authService;
 
-  ApiService({http.Client? client}) : client = client ?? http.Client();
+  ApiService({
+    http.Client? client,
+    AuthService? authService,
+  }) : 
+    client = client ?? http.Client(),
+    authService = authService ?? AuthService();
+
+  Future<Map<String, String>> _getHeaders() async {
+    return await authService.getAuthHeaders();
+  }
 
   Future<List<Workout>> getWorkouts() async {
-    final response = await client.get(Uri.parse('$baseUrl/workouts/'));
+    final headers = await _getHeaders();
+    final response = await client.get(
+      Uri.parse('$baseUrl/workouts/'),
+      headers: headers,
+    );
     
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
@@ -22,7 +37,11 @@ class ApiService {
   }
 
   Future<Workout> getWorkout(String id) async {
-    final response = await client.get(Uri.parse('$baseUrl/workouts/$id'));
+    final headers = await _getHeaders();
+    final response = await client.get(
+      Uri.parse('$baseUrl/workouts/$id'),
+      headers: headers,
+    );
     
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);
@@ -33,9 +52,10 @@ class ApiService {
   }
 
   Future<Workout> createWorkout(Workout workout) async {
+    final headers = await _getHeaders();
     final response = await client.post(
       Uri.parse('$baseUrl/workouts/'),
-      headers: {'Content-Type': 'application/json'},
+      headers: headers,
       body: json.encode(workout.toJson()),
     );
     
@@ -48,9 +68,10 @@ class ApiService {
   }
 
   Future<Workout> updateWorkout(String id, Workout workout) async {
+    final headers = await _getHeaders();
     final response = await client.put(
       Uri.parse('$baseUrl/workouts/$id'),
-      headers: {'Content-Type': 'application/json'},
+      headers: headers,
       body: json.encode(workout.toJsonForUpdate()),
     );
     
@@ -63,7 +84,11 @@ class ApiService {
   }
 
   Future<void> deleteWorkout(String id) async {
-    final response = await client.delete(Uri.parse('$baseUrl/workouts/$id'));
+    final headers = await _getHeaders();
+    final response = await client.delete(
+      Uri.parse('$baseUrl/workouts/$id'),
+      headers: headers,
+    );
     
     if (response.statusCode != 204) {
       throw Exception('Failed to delete workout: ${response.statusCode}');
@@ -71,7 +96,11 @@ class ApiService {
   }
 
   Future<List<WorkoutTemplate>> getTemplates() async {
-    final response = await client.get(Uri.parse('$baseUrl/templates/'));
+    final headers = await _getHeaders();
+    final response = await client.get(
+      Uri.parse('$baseUrl/templates/'),
+      headers: headers,
+    );
     
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
@@ -82,8 +111,10 @@ class ApiService {
   }
 
   Future<List<WorkoutTemplate>> getTemplatesByType(String workoutType) async {
+    final headers = await _getHeaders();
     final response = await client.get(
       Uri.parse('$baseUrl/templates/type/${workoutType.toUpperCase()}'),
+      headers: headers,
     );
     
     if (response.statusCode == 200) {
@@ -95,7 +126,11 @@ class ApiService {
   }
 
   Future<WorkoutTemplate> getTemplate(String id) async {
-    final response = await client.get(Uri.parse('$baseUrl/templates/$id'));
+    final headers = await _getHeaders();
+    final response = await client.get(
+      Uri.parse('$baseUrl/templates/$id'),
+      headers: headers,
+    );
     
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);
@@ -106,9 +141,10 @@ class ApiService {
   }
 
   Future<WorkoutTemplate> createTemplate(WorkoutTemplate template) async {
+    final headers = await _getHeaders();
     final response = await client.post(
       Uri.parse('$baseUrl/templates/'),
-      headers: {'Content-Type': 'application/json'},
+      headers: headers,
       body: json.encode(template.toJson()),
     );
     
@@ -121,9 +157,10 @@ class ApiService {
   }
 
   Future<WorkoutTemplate> updateTemplate(String id, WorkoutTemplate template) async {
+    final headers = await _getHeaders();
     final response = await client.put(
       Uri.parse('$baseUrl/templates/$id'),
-      headers: {'Content-Type': 'application/json'},
+      headers: headers,
       body: json.encode(template.toJson()),
     );
     
@@ -136,7 +173,11 @@ class ApiService {
   }
 
   Future<void> deleteTemplate(String id) async {
-    final response = await client.delete(Uri.parse('$baseUrl/templates/$id'));
+    final headers = await _getHeaders();
+    final response = await client.delete(
+      Uri.parse('$baseUrl/templates/$id'),
+      headers: headers,
+    );
     
     if (response.statusCode != 204) {
       throw Exception('Failed to delete template: ${response.statusCode}');
@@ -144,8 +185,10 @@ class ApiService {
   }
 
   Future<List<WorkoutTemplate>> seedTemplates() async {
+    final headers = await _getHeaders();
     final response = await client.post(
       Uri.parse('$baseUrl/templates/seed'),
+      headers: headers,
     );
     
     if (response.statusCode == 200) {
@@ -158,5 +201,6 @@ class ApiService {
 
   void dispose() {
     client.close();
+    authService.dispose();
   }
 }
