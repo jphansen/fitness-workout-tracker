@@ -21,13 +21,14 @@ def get_template(template_id: str):
     """Get a specific template by ID"""
     collection = get_templates_collection()
     
-    if not ObjectId.is_valid(template_id):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid template ID format"
-        )
+    # Try to find by ObjectId first (for new templates)
+    if ObjectId.is_valid(template_id):
+        template = collection.find_one({"_id": ObjectId(template_id)})
+        if template:
+            return template
     
-    template = collection.find_one({"_id": ObjectId(template_id)})
+    # If not found by ObjectId, try as string (for existing templates with string IDs)
+    template = collection.find_one({"_id": template_id})
     
     if not template:
         raise HTTPException(
@@ -65,7 +66,11 @@ def seed_templates():
     inserted_ids = []
     for template_data in WORKOUT_TEMPLATES:
         template = WorkoutTemplate(**template_data)
-        result = collection.insert_one(template.dict(by_alias=True))
+        # Prepare document for insertion - convert model to dict but keep ObjectId as ObjectId
+        template_dict = template.model_dump(by_alias=True, exclude={"id"})
+        # Add _id as ObjectId
+        template_dict["_id"] = template.id
+        result = collection.insert_one(template_dict)
         inserted_ids.append(result.inserted_id)
     
     # Retrieve and return all seeded templates

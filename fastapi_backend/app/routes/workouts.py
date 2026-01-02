@@ -23,13 +23,14 @@ def get_workout(workout_id: str):
     """Get a specific workout by ID"""
     collection = get_workouts_collection()
     
-    if not ObjectId.is_valid(workout_id):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid workout ID format"
-        )
+    # Try to find by ObjectId first (for new workouts)
+    if ObjectId.is_valid(workout_id):
+        workout = collection.find_one({"_id": ObjectId(workout_id)})
+        if workout:
+            return workout
     
-    workout = collection.find_one({"_id": ObjectId(workout_id)})
+    # If not found by ObjectId, try as string (for existing workouts with string IDs)
+    workout = collection.find_one({"_id": workout_id})
     
     if not workout:
         raise HTTPException(
@@ -46,13 +47,18 @@ def create_workout(workout: WorkoutCreate):
     collection = get_workouts_collection()
     
     # Create WorkoutInDB instance
-    workout_in_db = WorkoutInDB(**workout.dict())
+    workout_in_db = WorkoutInDB(**workout.model_dump())
     
     # Calculate total volume
     workout_in_db.total_volume = workout_in_db.calculate_total_volume()
     
+    # Prepare document for insertion - convert model to dict but keep ObjectId as ObjectId
+    workout_dict = workout_in_db.model_dump(by_alias=True, exclude={"id"})
+    # Add _id as ObjectId
+    workout_dict["_id"] = workout_in_db.id
+    
     # Insert into database
-    result = collection.insert_one(workout_in_db.dict(by_alias=True))
+    result = collection.insert_one(workout_dict)
     
     # Retrieve the created workout
     created_workout = collection.find_one({"_id": result.inserted_id})
@@ -65,14 +71,14 @@ def update_workout(workout_id: str, workout_update: WorkoutUpdate):
     """Update an existing workout"""
     collection = get_workouts_collection()
     
-    if not ObjectId.is_valid(workout_id):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid workout ID format"
-        )
+    # Try to find by ObjectId first
+    existing = None
+    if ObjectId.is_valid(workout_id):
+        existing = collection.find_one({"_id": ObjectId(workout_id)})
     
-    # Get existing workout
-    existing = collection.find_one({"_id": ObjectId(workout_id)})
+    # If not found by ObjectId, try as string
+    if not existing:
+        existing = collection.find_one({"_id": workout_id})
     
     if not existing:
         raise HTTPException(
@@ -90,14 +96,19 @@ def update_workout(workout_id: str, workout_update: WorkoutUpdate):
         temp_workout.exercises = update_data["exercises"]
         update_data["total_volume"] = temp_workout.calculate_total_volume()
     
-    # Perform update
+    # Perform update - use the same ID format as found
+    if ObjectId.is_valid(workout_id) and isinstance(existing.get("_id"), ObjectId):
+        query_id = ObjectId(workout_id)
+    else:
+        query_id = workout_id
+    
     collection.update_one(
-        {"_id": ObjectId(workout_id)},
+        {"_id": query_id},
         {"$set": update_data}
     )
     
     # Return updated workout
-    updated_workout = collection.find_one({"_id": ObjectId(workout_id)})
+    updated_workout = collection.find_one({"_id": query_id})
     
     return updated_workout
 
@@ -107,15 +118,18 @@ def delete_workout(workout_id: str):
     """Delete a workout"""
     collection = get_workouts_collection()
     
-    if not ObjectId.is_valid(workout_id):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid workout ID format"
-        )
+    # Try to delete by ObjectId first
+    deleted_count = 0
+    if ObjectId.is_valid(workout_id):
+        result = collection.delete_one({"_id": ObjectId(workout_id)})
+        deleted_count = result.deleted_count
     
-    result = collection.delete_one({"_id": ObjectId(workout_id)})
+    # If not deleted by ObjectId, try as string
+    if deleted_count == 0:
+        result = collection.delete_one({"_id": workout_id})
+        deleted_count = result.deleted_count
     
-    if result.deleted_count == 0:
+    if deleted_count == 0:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Workout not found"
