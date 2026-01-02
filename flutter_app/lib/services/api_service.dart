@@ -4,7 +4,7 @@ import '../models/workout.dart';
 import '../models/workout_template.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://localhost:8888';
+  static const String baseUrl = 'https://fitness.asvig.com';
   
   final http.Client client;
 
@@ -51,14 +51,14 @@ class ApiService {
     final response = await client.put(
       Uri.parse('$baseUrl/workouts/$id'),
       headers: {'Content-Type': 'application/json'},
-      body: json.encode(workout.toJson()),
+      body: json.encode(workout.toJsonForUpdate()),
     );
     
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);
       return Workout.fromJson(data);
     } else {
-      throw Exception('Failed to update workout: ${response.statusCode}');
+      throw Exception('Failed to update workout: ${response.statusCode}. URL: $baseUrl/workouts/$id');
     }
   }
 
