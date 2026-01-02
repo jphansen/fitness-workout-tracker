@@ -21,9 +21,9 @@ class TemplateListScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () {
-              // TODO: Implement template creation
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Template creation coming soon')),
+              Navigator.pushNamed(
+                context,
+                '/create-template',
               );
             },
           ),
@@ -125,10 +125,13 @@ class TemplateListScreen extends StatelessWidget {
                       PopupMenuItem(
                         child: const Text('Edit'),
                         onTap: () {
-                          // TODO: Implement template editing
                           Future.delayed(Duration.zero, () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Template editing coming soon')),
+                            Navigator.pushNamed(
+                              context,
+                              '/create-template',
+                              arguments: {
+                                'templateToEdit': template,
+                              },
                             );
                           });
                         },

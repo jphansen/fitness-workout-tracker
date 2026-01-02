@@ -5,6 +5,7 @@ import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'screens/workout_list_screen.dart';
 import 'screens/template_list_screen.dart';
 import 'screens/create_workout_screen.dart';
+import 'screens/create_template_screen.dart';
 import 'screens/workout_detail_screen.dart';
 import 'services/api_service.dart';
 import 'providers/workout_provider.dart';
@@ -79,6 +80,12 @@ class FitnessTrackerApp extends StatelessWidget {
                   workoutToEdit: workoutToEdit,
                   template: template,
                 ),
+              );
+            case '/create-template':
+              final args = settings.arguments as Map<String, dynamic>?;
+              final templateToEdit = args?['templateToEdit'] as WorkoutTemplate?;
+              return MaterialPageRoute(
+                builder: (_) => CreateTemplateScreen(templateToEdit: templateToEdit),
               );
             case '/workout-detail':
               final args = settings.arguments as Map<String, dynamic>?;
