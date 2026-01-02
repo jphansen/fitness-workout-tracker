@@ -4,7 +4,7 @@ from bson import ObjectId
 
 from app.database.mongodb import get_workouts_collection
 from app.models.workout import (
-    WorkoutCreate, WorkoutUpdate, WorkoutResponse, WorkoutInDB
+    WorkoutCreate, WorkoutUpdate, WorkoutResponse, WorkoutInDB, Exercise
 )
 
 router = APIRouter(prefix="/workouts", tags=["workouts"])
@@ -87,13 +87,15 @@ def update_workout(workout_id: str, workout_update: WorkoutUpdate):
         )
     
     # Prepare update data
-    update_data = workout_update.dict(exclude_unset=True)
+    update_data = workout_update.model_dump(exclude_unset=True)
     
     # If exercises are updated, recalculate total volume
     if "exercises" in update_data:
+        # Convert exercise dictionaries to Exercise instances for volume calculation
+        exercise_instances = [Exercise(**ex) for ex in update_data["exercises"]]
         # Create temporary workout to calculate volume
         temp_workout = WorkoutInDB(**existing)
-        temp_workout.exercises = update_data["exercises"]
+        temp_workout.exercises = exercise_instances
         update_data["total_volume"] = temp_workout.calculate_total_volume()
     
     # Perform update - use the same ID format as found
