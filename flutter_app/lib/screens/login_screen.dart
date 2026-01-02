@@ -187,7 +187,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 : 'Sign in to continue',
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.grey[600],
+                              color: Colors.grey[600]!,
                             ),
                             textAlign: TextAlign.center,
                           ),
@@ -265,9 +265,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.red[50],
+                                color: Colors.red[50]!,
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.red[200]),
+                                border: Border.all(color: Colors.red[200]!),
                               ),
                               child: Row(
                                 children: [
