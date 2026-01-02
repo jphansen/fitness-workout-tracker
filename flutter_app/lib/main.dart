@@ -83,6 +83,17 @@ class FitnessTrackerApp extends StatelessWidget {
             case '/workout-detail':
               final args = settings.arguments as Map<String, dynamic>?;
               final workout = args?['workout'] as Workout?;
+              if (workout == null) {
+                // If no workout provided, navigate back or show error
+                return MaterialPageRoute(
+                  builder: (_) => Scaffold(
+                    appBar: AppBar(title: const Text('Error')),
+                    body: const Center(
+                      child: Text('No workout data provided'),
+                    ),
+                  ),
+                );
+              }
               return MaterialPageRoute(
                 builder: (_) => WorkoutDetailScreen(workout: workout),
               );
