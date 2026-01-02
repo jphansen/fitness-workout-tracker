@@ -8,6 +8,8 @@ import 'screens/create_workout_screen.dart';
 import 'screens/workout_detail_screen.dart';
 import 'services/api_service.dart';
 import 'providers/workout_provider.dart';
+import 'models/workout.dart';
+import 'models/workout_template.dart';
 
 void main() {
   runApp(const FitnessTrackerApp());
