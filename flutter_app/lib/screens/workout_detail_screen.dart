@@ -197,22 +197,35 @@ class WorkoutDetailScreen extends StatelessWidget {
                 ),
                 Chip(
                   label: Text(
-                    '${exercise.volume.toStringAsFixed(1)} kg',
+                    exercise.type == 'weight'
+                        ? '${exercise.volume.toStringAsFixed(1)} kg'
+                        : 'Score: ${exercise.volume.toStringAsFixed(1)}',
                     style: const TextStyle(fontSize: 12),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildExerciseStat('Weight', '${exercise.weight} kg', Icons.fitness_center),
-                _buildExerciseStat('Reps', '${exercise.reps}', Icons.repeat),
-                _buildExerciseStat('Sets', '${exercise.sets}', Icons.format_list_numbered),
-                _buildExerciseStat('RPE', '${exercise.rpe}/10', Icons.speed),
-              ],
-            ),
+            if (exercise.type == 'weight')
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildExerciseStat('Weight', '${exercise.weight ?? 0} kg', Icons.fitness_center),
+                  _buildExerciseStat('Reps', '${exercise.reps ?? 0}', Icons.repeat),
+                  _buildExerciseStat('Sets', '${exercise.sets ?? 0}', Icons.format_list_numbered),
+                  _buildExerciseStat('RPE', '${exercise.rpe}/10', Icons.speed),
+                ],
+              )
+            else if (exercise.type == 'cardio')
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildExerciseStat('Time', '${exercise.time ?? 0} min', Icons.timer),
+                  _buildExerciseStat('Speed', '${exercise.speed ?? 0} km/h', Icons.speed),
+                  _buildExerciseStat('Distance', '${exercise.distance ?? 0} km', Icons.straighten),
+                  _buildExerciseStat('RPE', '${exercise.rpe}/10', Icons.favorite),
+                ],
+              ),
             if (exercise.notes != null && exercise.notes!.isNotEmpty)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -263,7 +276,7 @@ class WorkoutDetailScreen extends StatelessWidget {
   }
 
   int _calculateTotalSets(List<Exercise> exercises) {
-    return exercises.fold(0, (sum, exercise) => sum + exercise.sets);
+    return exercises.fold(0, (sum, exercise) => sum + (exercise.sets ?? 0));
   }
 
   Color _getWorkoutTypeColor(String type) {
