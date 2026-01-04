@@ -1,16 +1,32 @@
 class Exercise {
   final String name;
-  final double weight;
-  final int reps;
-  final int sets;
+  final String type; // 'weight' or 'cardio'
+  
+  // Weight training fields
+  final double? weight;
+  final int? reps;
+  final int? sets;
+  
+  // Cardio fields
+  final double? time;
+  final double? speed;
+  final double? distance;
+  final int? calories;
+  
+  // Common fields
   final int rpe;
   final String? notes;
 
   Exercise({
     required this.name,
-    this.weight = 10.0,
-    this.reps = 15,
-    this.sets = 3,
+    this.type = 'weight',
+    this.weight,
+    this.reps,
+    this.sets,
+    this.time,
+    this.speed,
+    this.distance,
+    this.calories,
     this.rpe = 5,
     this.notes,
   });
@@ -18,40 +34,73 @@ class Exercise {
   factory Exercise.fromJson(Map<String, dynamic> json) {
     return Exercise(
       name: json['name'] as String,
-      weight: (json['weight'] as num).toDouble(),
-      reps: json['reps'] as int,
-      sets: json['sets'] as int,
-      rpe: json['rpe'] as int,
+      type: json['type'] as String? ?? 'weight',
+      weight: json['weight'] != null ? (json['weight'] as num).toDouble() : null,
+      reps: json['reps'] as int?,
+      sets: json['sets'] as int?,
+      time: json['time'] != null ? (json['time'] as num).toDouble() : null,
+      speed: json['speed'] != null ? (json['speed'] as num).toDouble() : null,
+      distance: json['distance'] != null ? (json['distance'] as num).toDouble() : null,
+      calories: json['calories'] as int?,
+      rpe: json['rpe'] as int? ?? 5,
       notes: json['notes'] as String?,
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {
+    final map = {
       'name': name,
-      'weight': weight,
-      'reps': reps,
-      'sets': sets,
+      'type': type,
       'rpe': rpe,
-      'notes': notes,
+      if (notes != null) 'notes': notes,
     };
+    
+    if (type == 'weight') {
+      map['weight'] = weight;
+      map['reps'] = reps;
+      map['sets'] = sets;
+    } else if (type == 'cardio') {
+      map['time'] = time;
+      map['speed'] = speed;
+      map['distance'] = distance;
+      map['calories'] = calories;
+    }
+    
+    return map;
   }
 
-  double get volume => weight * reps * sets;
+  double get volume {
+    if (type == 'weight') {
+      return (weight ?? 0) * (reps ?? 0) * (sets ?? 0);
+    } else if (type == 'cardio') {
+      return (time ?? 0) * (speed ?? 0) * rpe;
+    }
+    return 0.0;
+  }
 
   Exercise copyWith({
     String? name,
+    String? type,
     double? weight,
     int? reps,
     int? sets,
+    double? time,
+    double? speed,
+    double? distance,
+    int? calories,
     int? rpe,
     String? notes,
   }) {
     return Exercise(
       name: name ?? this.name,
+      type: type ?? this.type,
       weight: weight ?? this.weight,
       reps: reps ?? this.reps,
       sets: sets ?? this.sets,
+      time: time ?? this.time,
+      speed: speed ?? this.speed,
+      distance: distance ?? this.distance,
+      calories: calories ?? this.calories,
       rpe: rpe ?? this.rpe,
       notes: notes ?? this.notes,
     );

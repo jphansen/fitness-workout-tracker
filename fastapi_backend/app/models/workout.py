@@ -30,18 +30,39 @@ class PyObjectId(ObjectId):
 class Exercise(BaseModel):
     """Exercise model within a workout"""
     name: str = Field(..., description="Name of the exercise")
-    weight: float = Field(10.0, description="Weight in kg")
-    reps: int = Field(15, description="Number of repetitions")
-    sets: int = Field(3, description="Number of sets")
+    type: str = Field("weight", description="Exercise type: 'weight' or 'cardio'")
+    
+    # Weight training fields
+    weight: Optional[float] = Field(None, description="Weight in kg")
+    reps: Optional[int] = Field(None, description="Number of repetitions")
+    sets: Optional[int] = Field(None, description="Number of sets")
+    
+    # Cardio fields
+    time: Optional[float] = Field(None, description="Time in minutes")
+    speed: Optional[float] = Field(None, description="Speed (km/h or similar)")
+    distance: Optional[float] = Field(None, description="Distance in km")
+    calories: Optional[int] = Field(None, description="Calories burned")
+    
+    # Common fields
     rpe: int = Field(
         5, ge=1, le=10, description="Rate of perceived exertion (1-10)"
     )
     notes: Optional[str] = Field(None, description="Additional notes")
     
+    @property
+    def volume(self) -> float:
+        """Calculate exercise volume/score based on type"""
+        if self.type == "weight":
+            return (self.weight or 0) * (self.reps or 0) * (self.sets or 0)
+        elif self.type == "cardio":
+            return (self.time or 0) * (self.speed or 0) * self.rpe
+        return 0.0
+    
     class Config:
         json_schema_extra = {
             "example": {
-                "name": "Kettlebell Swings: 45 sec / 15 sec rest",
+                "name": "Kettlebell Swings",
+                "type": "weight",
                 "weight": 10.0,
                 "reps": 15,
                 "sets": 3,
@@ -99,7 +120,7 @@ class WorkoutInDB(WorkoutCreate):
         """Calculate total volume from all exercises"""
         total = 0.0
         for exercise in self.exercises:
-            total += exercise.weight * exercise.reps * exercise.sets
+            total += exercise.volume
         return total
 
 

@@ -41,7 +41,13 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
       _notesController.text = widget.template!.description;
     } else {
       // Add a default exercise
-      _exercises.add(Exercise(name: 'Bench Press'));
+      _exercises.add(Exercise(
+        name: 'Bench Press',
+        type: 'weight',
+        weight: 10.0,
+        reps: 15,
+        sets: 3,
+      ));
     }
   }
 
@@ -91,7 +97,13 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
 
   void _addExercise() {
     setState(() {
-      _exercises.add(Exercise(name: 'New Exercise'));
+      _exercises.add(Exercise(
+        name: 'New Exercise',
+        type: 'weight',
+        weight: 10.0,
+        reps: 15,
+        sets: 3,
+      ));
     });
   }
 
@@ -456,6 +468,19 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
                     },
                   ),
                 ),
+                const SizedBox(width: 8),
+                DropdownButton<String>(
+                  value: exercise.type,
+                  items: const [
+                    DropdownMenuItem(value: 'weight', child: Text('Weight')),
+                    DropdownMenuItem(value: 'cardio', child: Text('Cardio')),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      _updateExercise(index, exercise.copyWith(type: value));
+                    }
+                  },
+                ),
                 IconButton(
                   icon: const Icon(Icons.delete, color: Colors.red),
                   onPressed: () => _removeExercise(index),
@@ -464,56 +489,127 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
               ],
             ),
             const SizedBox(height: 12),
+            if (exercise.type == 'weight') ...[
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      initialValue: exercise.weight?.toStringAsFixed(1) ?? '10.0',
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Weight (kg)',
+                        border: OutlineInputBorder(),
+                      ),
+                      onChanged: (value) {
+                        final weight = double.tryParse(value) ?? 10.0;
+                        _updateExercise(index, exercise.copyWith(weight: weight));
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextFormField(
+                      initialValue: exercise.reps?.toString() ?? '15',
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Reps',
+                        border: OutlineInputBorder(),
+                      ),
+                      onChanged: (value) {
+                        final reps = int.tryParse(value) ?? 15;
+                        _updateExercise(index, exercise.copyWith(reps: reps));
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextFormField(
+                      initialValue: exercise.sets?.toString() ?? '3',
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Sets',
+                        border: OutlineInputBorder(),
+                      ),
+                      onChanged: (value) {
+                        final sets = int.tryParse(value) ?? 3;
+                        _updateExercise(index, exercise.copyWith(sets: sets));
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ] else if (exercise.type == 'cardio') ...[
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      initialValue: exercise.time?.toStringAsFixed(1) ?? '30.0',
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Time (min)',
+                        border: OutlineInputBorder(),
+                      ),
+                      onChanged: (value) {
+                        final time = double.tryParse(value) ?? 30.0;
+                        _updateExercise(index, exercise.copyWith(time: time));
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextFormField(
+                      initialValue: exercise.speed?.toStringAsFixed(1) ?? '10.0',
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Speed (km/h)',
+                        border: OutlineInputBorder(),
+                      ),
+                      onChanged: (value) {
+                        final speed = double.tryParse(value) ?? 10.0;
+                        _updateExercise(index, exercise.copyWith(speed: speed));
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      initialValue: exercise.distance?.toStringAsFixed(1) ?? '5.0',
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Distance (km)',
+                        border: OutlineInputBorder(),
+                      ),
+                      onChanged: (value) {
+                        final distance = double.tryParse(value) ?? 5.0;
+                        _updateExercise(index, exercise.copyWith(distance: distance));
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextFormField(
+                      initialValue: exercise.calories?.toString() ?? '300',
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Calories',
+                        border: OutlineInputBorder(),
+                      ),
+                      onChanged: (value) {
+                        final calories = int.tryParse(value) ?? 300;
+                        _updateExercise(index, exercise.copyWith(calories: calories));
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            const SizedBox(height: 12),
             Row(
               children: [
-                Expanded(
-                  child: TextFormField(
-                    initialValue: exercise.weight.toStringAsFixed(1),
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Weight (kg)',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.fitness_center, size: 18),
-                    ),
-                    onChanged: (value) {
-                      final weight = double.tryParse(value) ?? exercise.weight;
-                      _updateExercise(index, exercise.copyWith(weight: weight));
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextFormField(
-                    initialValue: exercise.reps.toString(),
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Reps',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.repeat, size: 18),
-                    ),
-                    onChanged: (value) {
-                      final reps = int.tryParse(value) ?? exercise.reps;
-                      _updateExercise(index, exercise.copyWith(reps: reps));
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextFormField(
-                    initialValue: exercise.sets.toString(),
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Sets',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.format_list_numbered, size: 18),
-                    ),
-                    onChanged: (value) {
-                      final sets = int.tryParse(value) ?? exercise.sets;
-                      _updateExercise(index, exercise.copyWith(sets: sets));
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
                 Expanded(
                   child: TextFormField(
                     initialValue: exercise.rpe.toString(),
@@ -521,7 +617,6 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
                     decoration: const InputDecoration(
                       labelText: 'RPE (1-10)',
                       border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.speed, size: 18),
                     ),
                     onChanged: (value) {
                       final rpe = int.tryParse(value) ?? exercise.rpe;
@@ -529,18 +624,14 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
                     },
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
+                const SizedBox(width: 12),
                 Expanded(
+                  flex: 2,
                   child: TextFormField(
                     initialValue: exercise.notes ?? '',
                     decoration: const InputDecoration(
                       labelText: 'Notes (optional)',
                       border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.note, size: 18),
                     ),
                     onChanged: (value) {
                       _updateExercise(index, exercise.copyWith(notes: value.isEmpty ? null : value));
@@ -554,11 +645,15 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Volume: ${exercise.volume.toStringAsFixed(1)} kg',
+                  exercise.type == 'weight'
+                      ? 'Volume: ${exercise.volume.toStringAsFixed(1)} kg'
+                      : 'Score: ${exercise.volume.toStringAsFixed(1)}',
                   style: const TextStyle(fontSize: 12, color: Colors.grey),
                 ),
                 Text(
-                  'Total: ${exercise.sets}x${exercise.reps} @ ${exercise.weight}kg',
+                  exercise.type == 'weight'
+                      ? 'Total: ${exercise.sets}x${exercise.reps} @ ${exercise.weight}kg'
+                      : '${exercise.time}min @ ${exercise.speed}km/h',
                   style: const TextStyle(fontSize: 12, color: Colors.grey),
                 ),
               ],
