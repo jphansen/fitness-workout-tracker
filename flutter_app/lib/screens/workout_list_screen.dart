@@ -5,7 +5,6 @@ import '../models/workout.dart';
 import '../services/auth_service.dart';
 import 'create_workout_screen.dart';
 import 'workout_detail_screen.dart';
-import 'template_list_screen.dart';
 import 'exercise_list_screen.dart';
 
 class WorkoutListScreen extends StatefulWidget {
@@ -27,7 +26,6 @@ class _WorkoutListScreenState extends State<WorkoutListScreen> {
   Future<void> _loadData() async {
     final provider = Provider.of<WorkoutProvider>(context, listen: false);
     await provider.loadWorkouts();
-    await provider.loadTemplates();
   }
 
   @override
@@ -90,21 +88,8 @@ class _WorkoutListScreenState extends State<WorkoutListScreen> {
               selected: true,
             ),
             ListTile(
-              leading: const Icon(Icons.folder_copy),
-              title: const Text('Templates'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const TemplateListScreen(),
-                  ),
-                );
-              },
-            ),
-            ListTile(
               leading: const Icon(Icons.fitness_center),
-              title: const Text('Exercises'),
+              title: const Text('Exercise Library'),  
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(

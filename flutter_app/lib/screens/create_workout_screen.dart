@@ -3,13 +3,11 @@ import 'package:provider/provider.dart';
 import '../providers/workout_provider.dart';
 import '../models/workout.dart';
 import '../models/exercise.dart';
-import '../models/workout_template.dart';
 
 class CreateWorkoutScreen extends StatefulWidget {
   final Workout? workoutToEdit;
-  final WorkoutTemplate? template;
 
-  const CreateWorkoutScreen({super.key, this.workoutToEdit, this.template});
+  const CreateWorkoutScreen({super.key, this.workoutToEdit});
 
   @override
   State<CreateWorkoutScreen> createState() => _CreateWorkoutScreenState();
@@ -34,11 +32,6 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
       _workoutType = widget.workoutToEdit!.workoutType;
       _notesController.text = widget.workoutToEdit!.notes ?? '';
       _exercises.addAll(widget.workoutToEdit!.exercises);
-    } else if (widget.template != null) {
-      // Use template data
-      _workoutType = widget.template!.workoutType;
-      _exercises.addAll(widget.template!.exercises);
-      _notesController.text = widget.template!.description;
     } else {
       // Add a default exercise
       _exercises.add(Exercise(
@@ -119,88 +112,23 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
     });
   }
 
-  Future<void> _loadTemplates() async {
-    final provider = Provider.of<WorkoutProvider>(context, listen: false);
-    final templates = await provider.getTemplatesByType(_workoutType);
-    
-    if (templates.isNotEmpty && mounted) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Select Template'),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: templates.length,
-              itemBuilder: (context, index) {
-                final template = templates[index];
-                return ListTile(
-                  title: Text(template.name),
-                  subtitle: Text(template.description),
-                  trailing: Text('${template.exercises.length} exercises'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    setState(() {
-                      _exercises.clear();
-                      _exercises.addAll(template.exercises);
-                    });
-                  },
-                );
-              },
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-          ],
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No templates found for this workout type'),
-        ),
-      );
-    }
-  }
+  // Template methods removed - use Exercise Library instead
 
   Future<void> _browseExercises() async {
-    final provider = Provider.of<WorkoutProvider>(context, listen: false);
+    // Navigate to Exercise Library for browsing
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Use the Exercise Library from the menu to manage exercises'),
+        duration: Duration(seconds: 2),
+      ),
+    );
     
-    // Load all templates if not already loaded
-    if (provider.templates.isEmpty) {
-      await provider.loadTemplates();
-    }
-    
-    // Extract all unique exercises from all templates
-    final Map<String, Exercise> uniqueExercises = {};
-    for (var template in provider.templates) {
-      for (var exercise in template.exercises) {
-        // Use name + type as key to avoid duplicates
-        final key = '${exercise.name}_${exercise.type}';
-        if (!uniqueExercises.containsKey(key)) {
-          uniqueExercises[key] = exercise;
-        }
-      }
-    }
-    
-    if (uniqueExercises.isEmpty && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No exercises found. Create some templates first.'),
-        ),
-      );
-      return;
-    }
-    
+    /* Future enhancement: Add exercise selection from Exercise Library
     if (mounted) {
       final selectedExercise = await showDialog<Exercise>(
         context: context,
         builder: (context) => _ExerciseBrowserDialog(
-          exercises: uniqueExercises.values.toList(),
+          exercises: [], // Load from Exercise Library API
         ),
       );
       
@@ -218,6 +146,7 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
         );
       }
     }
+    */
   }
 
   Future<void> _saveWorkout() async {
@@ -387,12 +316,6 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
                           border: OutlineInputBorder(),
                           labelText: 'Select workout type',
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      OutlinedButton.icon(
-                        icon: const Icon(Icons.folder_copy),
-                        label: const Text('Load from Template'),
-                        onPressed: _loadTemplates,
                       ),
                     ],
                   ),

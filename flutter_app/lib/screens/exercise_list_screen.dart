@@ -32,17 +32,16 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
   }
 
   Future<void> _loadExercises() async {
+    // TODO: Load exercises from Exercise Library API endpoint
+    // For now, show exercises from recent workouts
     final provider = Provider.of<WorkoutProvider>(context, listen: false);
     
-    // Load all templates if not already loaded
-    if (provider.templates.isEmpty) {
-      await provider.loadTemplates();
-    }
+    await provider.loadWorkouts();
     
-    // Extract all unique exercises from all templates
+    // Extract all unique exercises from workouts
     final Map<String, Exercise> uniqueExercises = {};
-    for (var template in provider.templates) {
-      for (var exercise in template.exercises) {
+    for (var workout in provider.workouts) {
+      for (var exercise in workout.exercises) {
         // Use name + type as key to avoid duplicates
         final key = '${exercise.name}_${exercise.type}';
         if (!uniqueExercises.containsKey(key)) {

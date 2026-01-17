@@ -2,13 +2,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
-from app.routes import workouts, templates, auth
+from app.routes import workouts, auth
 from app.database.mongodb import mongodb
 
 # Create FastAPI app
 app = FastAPI(
     title="Fitness Workout Tracker API",
-    description="API for tracking workout sessions with templates A-D",
+    description="API for tracking workout sessions",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc"
@@ -26,7 +26,8 @@ app.add_middleware(
 # Include routers
 app.include_router(auth.router)
 app.include_router(workouts.router)
-app.include_router(templates.router)
+# Templates disabled - using Exercise library instead
+# app.include_router(templates.router)
 
 
 @app.on_event("startup")

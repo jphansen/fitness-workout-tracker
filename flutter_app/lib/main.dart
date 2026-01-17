@@ -4,16 +4,13 @@ import 'package:flex_color_scheme/flex_color_scheme.dart';
 
 import 'screens/login_screen.dart';
 import 'screens/workout_list_screen.dart';
-import 'screens/template_list_screen.dart';
 import 'screens/exercise_list_screen.dart';
 import 'screens/create_workout_screen.dart';
-import 'screens/create_template_screen.dart';
 import 'screens/workout_detail_screen.dart';
 import 'services/auth_service.dart';
 import 'services/api_service.dart';
 import 'providers/workout_provider.dart';
 import 'models/workout.dart';
-import 'models/workout_template.dart';
 
 void main() {
   runApp(const FitnessTrackerApp());
@@ -89,23 +86,15 @@ class FitnessTrackerApp extends StatelessWidget {
               return MaterialPageRoute(builder: (_) => const LoginScreen());
             case '/workouts':
               return MaterialPageRoute(builder: (_) => const WorkoutListScreen());
-            case '/templates':
-              return MaterialPageRoute(builder: (_) => const TemplateListScreen());
+            case '/exercises':
+              return MaterialPageRoute(builder: (_) => const ExerciseListScreen());
             case '/create-workout':
               final args = settings.arguments as Map<String, dynamic>?;
               final workoutToEdit = args?['workoutToEdit'] as Workout?;
-              final template = args?['template'] as WorkoutTemplate?;
               return MaterialPageRoute(
                 builder: (_) => CreateWorkoutScreen(
                   workoutToEdit: workoutToEdit,
-                  template: template,
                 ),
-              );
-            case '/create-template':
-              final args = settings.arguments as Map<String, dynamic>?;
-              final templateToEdit = args?['templateToEdit'] as WorkoutTemplate?;
-              return MaterialPageRoute(
-                builder: (_) => CreateTemplateScreen(templateToEdit: templateToEdit),
               );
             case '/workout-detail':
               final args = settings.arguments as Map<String, dynamic>?;
