@@ -6,6 +6,7 @@ import '../services/auth_service.dart';
 import 'create_workout_screen.dart';
 import 'workout_detail_screen.dart';
 import 'template_list_screen.dart';
+import 'exercise_list_screen.dart';
 
 class WorkoutListScreen extends StatefulWidget {
   const WorkoutListScreen({super.key});
@@ -97,6 +98,19 @@ class _WorkoutListScreenState extends State<WorkoutListScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => const TemplateListScreen(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.fitness_center),
+              title: const Text('Exercises'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ExerciseListScreen(),
                   ),
                 );
               },

@@ -167,6 +167,59 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
     }
   }
 
+  Future<void> _browseExercises() async {
+    final provider = Provider.of<WorkoutProvider>(context, listen: false);
+    
+    // Load all templates if not already loaded
+    if (provider.templates.isEmpty) {
+      await provider.loadTemplates();
+    }
+    
+    // Extract all unique exercises from all templates
+    final Map<String, Exercise> uniqueExercises = {};
+    for (var template in provider.templates) {
+      for (var exercise in template.exercises) {
+        // Use name + type as key to avoid duplicates
+        final key = '${exercise.name}_${exercise.type}';
+        if (!uniqueExercises.containsKey(key)) {
+          uniqueExercises[key] = exercise;
+        }
+      }
+    }
+    
+    if (uniqueExercises.isEmpty && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No exercises found. Create some templates first.'),
+        ),
+      );
+      return;
+    }
+    
+    if (mounted) {
+      final selectedExercise = await showDialog<Exercise>(
+        context: context,
+        builder: (context) => _ExerciseBrowserDialog(
+          exercises: uniqueExercises.values.toList(),
+        ),
+      );
+      
+      if (selectedExercise != null) {
+        setState(() {
+          // Add the exercise as a template - user will customize the values
+          _exercises.add(selectedExercise.copyWith());
+        });
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Added ${selectedExercise.name}. Customize the values below.'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _saveWorkout() async {
     if (_formKey.currentState!.validate()) {
       final provider = Provider.of<WorkoutProvider>(context, listen: false);
@@ -362,19 +415,49 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
                             'Exercises',
                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.add),
-                            onPressed: _addExercise,
-                            tooltip: 'Add Exercise',
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.search),
+                                onPressed: _browseExercises,
+                                tooltip: 'Browse Exercises',
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.add),
+                                onPressed: _addExercise,
+                                tooltip: 'Add New Exercise',
+                              ),
+                            ],
                           ),
                         ],
                       ),
                       const SizedBox(height: 12),
                       if (_exercises.isEmpty)
-                        const Center(
-                          child: Text(
-                            'No exercises added',
-                            style: TextStyle(color: Colors.grey),
+                        Center(
+                          child: Column(
+                            children: [
+                              const Text(
+                                'No exercises added',
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  ElevatedButton.icon(
+                                    onPressed: _browseExercises,
+                                    icon: const Icon(Icons.search),
+                                    label: const Text('Browse Exercises'),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  OutlinedButton.icon(
+                                    onPressed: _addExercise,
+                                    icon: const Icon(Icons.add),
+                                    label: const Text('Create New'),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         )
                       else
@@ -701,6 +784,238 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
             child: const Text('OK'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// Exercise Browser Dialog Widget
+class _ExerciseBrowserDialog extends StatefulWidget {
+  final List<Exercise> exercises;
+
+  const _ExerciseBrowserDialog({required this.exercises});
+
+  @override
+  State<_ExerciseBrowserDialog> createState() => _ExerciseBrowserDialogState();
+}
+
+class _ExerciseBrowserDialogState extends State<_ExerciseBrowserDialog> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  String _filterType = 'all'; // 'all', 'weight', 'cardio'
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  List<Exercise> get _filteredExercises {
+    return widget.exercises.where((exercise) {
+      final matchesSearch = exercise.name.toLowerCase().contains(_searchQuery.toLowerCase());
+      final matchesType = _filterType == 'all' || exercise.type == _filterType;
+      return matchesSearch && matchesType;
+    }).toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final filteredExercises = _filteredExercises;
+
+    return Dialog(
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.9,
+        height: MediaQuery.of(context).size.height * 0.8,
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Browse Exercises',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            
+            // Search field
+            TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search exercises...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() {
+                            _searchQuery = '';
+                          });
+                        },
+                      )
+                    : null,
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
+            ),
+            const SizedBox(height: 12),
+            
+            // Filter chips
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  FilterChip(
+                    label: const Text('All'),
+                    selected: _filterType == 'all',
+                    onSelected: (selected) {
+                      setState(() {
+                        _filterType = 'all';
+                      });
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  FilterChip(
+                    label: const Text('Weight Training'),
+                    avatar: const Icon(Icons.fitness_center, size: 18),
+                    selected: _filterType == 'weight',
+                    onSelected: (selected) {
+                      setState(() {
+                        _filterType = 'weight';
+                      });
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  FilterChip(
+                    label: const Text('Cardio'),
+                    avatar: const Icon(Icons.directions_run, size: 18),
+                    selected: _filterType == 'cardio',
+                    onSelected: (selected) {
+                      setState(() {
+                        _filterType = 'cardio';
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            
+            // Results count
+            Text(
+              '${filteredExercises.length} exercise${filteredExercises.length != 1 ? 's' : ''} found',
+              style: const TextStyle(color: Colors.grey, fontSize: 12),
+            ),
+            const SizedBox(height: 8),
+            
+            // Exercise list
+            Expanded(
+              child: filteredExercises.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.search_off,
+                            size: 64,
+                            color: Colors.grey[600],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No exercises found',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Try adjusting your search or filters',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: filteredExercises.length,
+                      itemBuilder: (context, index) {
+                        final exercise = filteredExercises[index];
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: exercise.type == 'weight'
+                                  ? Colors.blue
+                                  : Colors.green,
+                              child: Icon(
+                                exercise.type == 'weight'
+                                    ? Icons.fitness_center
+                                    : Icons.directions_run,
+                                color: Colors.white,
+                              ),
+                            ),
+                            title: Text(
+                              exercise.name,
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            subtitle: Text(
+                              exercise.type == 'weight'
+                                  ? '${exercise.sets ?? 0} sets × ${exercise.reps ?? 0} reps @ ${exercise.weight ?? 0}kg'
+                                  : '${exercise.time ?? 0} min @ ${exercise.speed ?? 0} km/h',
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                            trailing: const Icon(Icons.add_circle_outline),
+                            onTap: () {
+                              Navigator.pop(context, exercise);
+                            },
+                          ),
+                        );
+                      },
+                    ),
+            ),
+            const SizedBox(height: 16),
+            
+            // Info text
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, size: 20, color: Colors.blue[300]),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Tap an exercise to add it to your workout. You can customize the values after adding.',
+                      style: TextStyle(fontSize: 12, color: Colors.blue[300]),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

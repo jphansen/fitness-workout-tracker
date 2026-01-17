@@ -5,6 +5,7 @@ import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'screens/login_screen.dart';
 import 'screens/workout_list_screen.dart';
 import 'screens/template_list_screen.dart';
+import 'screens/exercise_list_screen.dart';
 import 'screens/create_workout_screen.dart';
 import 'screens/create_template_screen.dart';
 import 'screens/workout_detail_screen.dart';
