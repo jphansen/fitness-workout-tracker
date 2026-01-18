@@ -297,6 +297,7 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
   }
 
   Future<void> _saveExerciseToTodayWorkout(Exercise exercise) async {
+    print('DEBUG: Saving exercise to today - name: ${exercise.name}, type: ${exercise.type}');
     final provider = Provider.of<WorkoutProvider>(context, listen: false);
     
     try {
@@ -315,10 +316,15 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
         orElse: () => null as dynamic,
       );
       
+      print('DEBUG: Existing workout found: ${existingWorkout != null}');
+      
       if (existingWorkout != null && existingWorkout is Workout) {
         // Add to existing workout
+        print('DEBUG: Adding to existing workout with ${existingWorkout.exercises.length} exercises');
         final updatedExercises = List<Exercise>.from(existingWorkout.exercises)..add(exercise);
+        print('DEBUG: Updated exercises count: ${updatedExercises.length}');
         final updatedWorkout = existingWorkout.copyWith(exercises: updatedExercises).withCalculatedVolume();
+        print('DEBUG: About to update workout...');
         
         await provider.updateWorkout(existingWorkout.id!, updatedWorkout);
         
@@ -337,6 +343,7 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
         }
       } else {
         // Create new workout for today
+        print('DEBUG: Creating new workout with exercise: ${exercise.name}');
         final newWorkout = Workout(
           date: DateTime.now(),
           workoutType: 'Daily', // Default type
@@ -344,6 +351,8 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
           notes: 'Quick log',
         ).withCalculatedVolume();
         
+        print('DEBUG: New workout exercises count: ${newWorkout.exercises.length}');
+        print('DEBUG: About to create workout...');
         await provider.createWorkout(newWorkout);
         
         if (mounted) {
@@ -361,6 +370,8 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
         }
       }
     } catch (e) {
+      print('DEBUG: Error in _saveExerciseToTodayWorkout: $e');
+      print('DEBUG: Error stack trace: ${StackTrace.current}');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -708,31 +719,42 @@ class _LogExerciseDialogState extends State<_LogExerciseDialog> {
 
   void _save() {
     if (_formKey.currentState!.validate()) {
-      final Exercise exercise;
-      if (widget.exercise.type == 'weight') {
-        exercise = Exercise(
-          name: widget.exercise.name,
-          type: 'weight',
-          weight: double.tryParse(_weightController.text),
-          reps: int.tryParse(_repsController.text),
-          sets: int.tryParse(_setsController.text),
-          rpe: _rpe,
-          notes: _notesController.text.isEmpty ? null : _notesController.text,
-        );
-      } else {
-        exercise = Exercise(
-          name: widget.exercise.name,
-          type: 'cardio',
-          time: double.tryParse(_timeController.text),
-          speed: double.tryParse(_speedController.text),
-          distance: double.tryParse(_distanceController.text),
-          calories: int.tryParse(_caloriesController.text),
-          rpe: _rpe,
-          notes: _notesController.text.isEmpty ? null : _notesController.text,
+      try {
+        final Exercise exercise;
+        if (widget.exercise.type == 'weight') {
+          exercise = Exercise(
+            name: widget.exercise.name,
+            type: 'weight',
+            weight: double.tryParse(_weightController.text),
+            reps: int.tryParse(_repsController.text),
+            sets: int.tryParse(_setsController.text),
+            rpe: _rpe,
+            notes: _notesController.text.isEmpty ? null : _notesController.text,
+          );
+        } else {
+          exercise = Exercise(
+            name: widget.exercise.name,
+            type: 'cardio',
+            time: double.tryParse(_timeController.text),
+            speed: double.tryParse(_speedController.text),
+            distance: double.tryParse(_distanceController.text),
+            calories: int.tryParse(_caloriesController.text),
+            rpe: _rpe,
+            notes: _notesController.text.isEmpty ? null : _notesController.text,
+          );
+        }
+        
+        print('DEBUG: Created exercise - name: ${exercise.name}, type: ${exercise.type}');
+        Navigator.pop(context, exercise);
+      } catch (e) {
+        print('DEBUG: Error creating exercise: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error creating exercise: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
-      
-      Navigator.pop(context, exercise);
     }
   }
 }
