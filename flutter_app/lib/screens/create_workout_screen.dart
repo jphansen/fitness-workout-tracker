@@ -19,13 +19,13 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
   late String _workoutType;
   final TextEditingController _notesController = TextEditingController();
   final List<Exercise> _exercises = [];
-  final List<String> _workoutTypes = ['A', 'B', 'C', 'D'];
+  final List<String> _workoutTypes = ['Daily', 'Morning', 'Evening', 'Custom'];
 
   @override
   void initState() {
     super.initState();
     _selectedDate = DateTime.now();
-    _workoutType = 'A';
+    _workoutType = 'Daily';
     
     if (widget.workoutToEdit != null) {
       _selectedDate = widget.workoutToEdit!.date;
@@ -304,7 +304,7 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
                         items: _workoutTypes.map((type) {
                           return DropdownMenuItem(
                             value: type,
-                            child: Text('Type $type'),
+                            child: Text(type),
                           );
                         }).toList(),
                         onChanged: (value) {
@@ -314,7 +314,7 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
                         },
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
-                          labelText: 'Select workout type',
+                          labelText: 'Workout category (optional)',
                         ),
                       ),
                     ],

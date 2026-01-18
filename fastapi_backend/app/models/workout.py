@@ -75,7 +75,7 @@ class Exercise(BaseModel):
 class WorkoutCreate(BaseModel):
     """Model for creating a new workout"""
     date: datetime = Field(default_factory=datetime.now, description="Workout date")
-    workout_type: str = Field(..., description="Workout type (A, B, C, D)")
+    workout_type: str = Field("Daily", description="Workout type (optional, default: Daily)")
     exercises: List[Exercise] = Field(..., description="List of exercises")
     notes: Optional[str] = Field(None, description="Overall workout notes")
     user_id: Optional[str] = Field(None, description="User ID (will be set from auth token)")
