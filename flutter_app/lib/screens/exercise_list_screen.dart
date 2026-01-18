@@ -308,17 +308,22 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
       final today = DateTime(now.year, now.month, now.day);
       
       // Find if there's already a workout for today
-      final existingWorkout = provider.workouts.firstWhere(
-        (w) {
-          final workoutDate = DateTime(w.date.year, w.date.month, w.date.day);
-          return workoutDate.isAtSameMomentAs(today);
-        },
-        orElse: () => null as dynamic,
-      );
+      Workout? existingWorkout;
+      try {
+        existingWorkout = provider.workouts.firstWhere(
+          (w) {
+            final workoutDate = DateTime(w.date.year, w.date.month, w.date.day);
+            return workoutDate.isAtSameMomentAs(today);
+          },
+        );
+      } catch (e) {
+        // No workout found for today, will create new one
+        existingWorkout = null;
+      }
       
       print('DEBUG: Existing workout found: ${existingWorkout != null}');
       
-      if (existingWorkout != null && existingWorkout is Workout) {
+      if (existingWorkout != null) {
         // Add to existing workout
         print('DEBUG: Adding to existing workout with ${existingWorkout.exercises.length} exercises');
         final updatedExercises = List<Exercise>.from(existingWorkout.exercises)..add(exercise);
