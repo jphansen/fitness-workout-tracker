@@ -324,7 +324,7 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
         // Create new workout for today
         final newWorkout = Workout(
           date: DateTime.now(),
-          workoutType: 'A', // Default type
+          workoutType: 'Daily', // Default type
           exercises: [exercise],
           notes: 'Quick log',
         ).withCalculatedVolume();
@@ -693,17 +693,29 @@ class _LogExerciseDialogState extends State<_LogExerciseDialog> {
 
   void _save() {
     if (_formKey.currentState!.validate()) {
-      final exercise = widget.exercise.copyWith(
-        weight: widget.exercise.type == 'weight' ? double.tryParse(_weightController.text) : null,
-        reps: widget.exercise.type == 'weight' ? int.tryParse(_repsController.text) : null,
-        sets: widget.exercise.type == 'weight' ? int.tryParse(_setsController.text) : null,
-        time: widget.exercise.type == 'cardio' ? double.tryParse(_timeController.text) : null,
-        speed: widget.exercise.type == 'cardio' ? double.tryParse(_speedController.text) : null,
-        distance: widget.exercise.type == 'cardio' ? double.tryParse(_distanceController.text) : null,
-        calories: widget.exercise.type == 'cardio' ? int.tryParse(_caloriesController.text) : null,
-        rpe: _rpe,
-        notes: _notesController.text.isEmpty ? null : _notesController.text,
-      );
+      final Exercise exercise;
+      if (widget.exercise.type == 'weight') {
+        exercise = Exercise(
+          name: widget.exercise.name,
+          type: 'weight',
+          weight: double.tryParse(_weightController.text),
+          reps: int.tryParse(_repsController.text),
+          sets: int.tryParse(_setsController.text),
+          rpe: _rpe,
+          notes: _notesController.text.isEmpty ? null : _notesController.text,
+        );
+      } else {
+        exercise = Exercise(
+          name: widget.exercise.name,
+          type: 'cardio',
+          time: double.tryParse(_timeController.text),
+          speed: double.tryParse(_speedController.text),
+          distance: double.tryParse(_distanceController.text),
+          calories: int.tryParse(_caloriesController.text),
+          rpe: _rpe,
+          notes: _notesController.text.isEmpty ? null : _notesController.text,
+        );
+      }
       
       Navigator.pop(context, exercise);
     }
