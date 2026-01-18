@@ -1,6 +1,6 @@
 class Exercise {
   final String name;
-  final String type; // 'weight' or 'cardio'
+  final String type; // 'weight' or 'cardio' - never null
   
   // Weight training fields
   final double? weight;
@@ -32,9 +32,10 @@ class Exercise {
   });
 
   factory Exercise.fromJson(Map<String, dynamic> json) {
+    final type = json['type'] as String?;
     return Exercise(
       name: json['name'] as String,
-      type: json['type'] as String? ?? 'weight',
+      type: (type == null || type.isEmpty) ? 'weight' : type,
       weight: json['weight'] != null ? (json['weight'] as num).toDouble() : null,
       reps: json['reps'] as int?,
       sets: json['sets'] as int?,

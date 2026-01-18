@@ -42,10 +42,25 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
     final Map<String, Exercise> uniqueExercises = {};
     for (var workout in provider.workouts) {
       for (var exercise in workout.exercises) {
+        // Ensure exercise has a type (handle legacy data)
+        final exerciseWithType = Exercise(
+          name: exercise.name,
+          type: exercise.type.isEmpty ? 'weight' : exercise.type,
+          weight: exercise.weight,
+          reps: exercise.reps,
+          sets: exercise.sets,
+          time: exercise.time,
+          speed: exercise.speed,
+          distance: exercise.distance,
+          calories: exercise.calories,
+          rpe: exercise.rpe,
+          notes: exercise.notes,
+        );
+        
         // Use name + type as key to avoid duplicates
-        final key = '${exercise.name}_${exercise.type}';
+        final key = '${exerciseWithType.name}_${exerciseWithType.type}';
         if (!uniqueExercises.containsKey(key)) {
-          uniqueExercises[key] = exercise;
+          uniqueExercises[key] = exerciseWithType;
         }
       }
     }
