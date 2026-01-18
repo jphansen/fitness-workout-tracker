@@ -56,14 +56,14 @@ class Exercise {
     };
     
     if (type == 'weight') {
-      map['weight'] = weight;
-      map['reps'] = reps;
-      map['sets'] = sets;
+      if (weight != null) map['weight'] = weight;
+      if (reps != null) map['reps'] = reps;
+      if (sets != null) map['sets'] = sets;
     } else if (type == 'cardio') {
-      map['time'] = time;
-      map['speed'] = speed;
-      map['distance'] = distance;
-      map['calories'] = calories;
+      if (time != null) map['time'] = time;
+      if (speed != null) map['speed'] = speed;
+      if (distance != null) map['distance'] = distance;
+      if (calories != null) map['calories'] = calories;
     }
     
     return map;
