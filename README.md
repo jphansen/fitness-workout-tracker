@@ -4,24 +4,26 @@ A full-stack workout tracking application with Flutter frontend and FastAPI back
 
 ## Features
 
-- **Workout Logging**: Track workouts with date, type (A/B/C/D), exercises, weight, reps, sets, RPE, notes
-- **Workout Templates**: Pre-defined templates for workout types A-D as specified in requirements
-- **Total Volume Calculation**: Automatic calculation of total volume (weight × reps × sets)
+- **Workout Logging**: Track daily workouts with exercises, customizable parameters
+- **Exercise Library**: Browse and log exercises from your workout history
+- **Exercise Types**: Support for weight training (weight/reps/sets) and cardio (time/speed/distance/calories)
+- **Workout Types**: Daily, Morning, Evening, or Custom workout classifications
+- **Total Volume Calculation**: Automatic calculation of total volume/score based on exercise type
 - **Dark Theme**: Modern dark theme UI with Material Design
 - **REST API**: FastAPI backend with MongoDB integration
 - **State Management**: Provider pattern for efficient state management
+- **Authentication**: JWT-based user authentication
 
 ## Project Structure
 
 ```
-fitness/
+fitness-workout-tracker/
 ├── flutter_app/          # Flutter frontend application
 │   ├── lib/
-│   │   ├── models/      # Data models (Workout, Exercise, Template)
-│   │   ├── services/    # API service for backend communication
+│   │   ├── models/      # Data models (Workout, Exercise, User)
+│   │   ├── services/    # API and auth services
 │   │   ├── providers/   # State management with Provider
-│   │   ├── screens/     # UI screens (WorkoutListScreen)
-│   │   └── widgets/     # Reusable UI components
+│   │   └── screens/     # UI screens (WorkoutList, ExerciseLibrary, CreateWorkout)
 │   ├── pubspec.yaml     # Flutter dependencies
 │   └── ...
 ├── fastapi_backend/     # Python FastAPI backend
@@ -29,31 +31,38 @@ fitness/
 │   │   ├── main.py      # FastAPI application entry point
 │   │   ├── database/    # MongoDB connection utilities
 │   │   ├── models/      # Pydantic models for data validation
-│   │   └── routes/      # API endpoints (workouts, templates)
+│   │   ├── routes/      # API endpoints (workouts, auth)
+│   │   └── auth/        # JWT authentication handlers
 │   ├── pyproject.toml   # Python dependencies (UV)
+│   ├── migrate_exercises.py  # Migration script for exercise type field
 │   └── ...
 └── app-foundation.txt   # Original requirements
 ```
 
-## Workout Types (A-D)
+## Architecture
 
-### Type A: Full Body Strength + HIIT
-- Warm-up: 5 min (rowing machine or cross-trainer)
-- Strength training (30 min): Chest Press, Lat Pulldown, Shoulder Press, etc.
-- HIIT Finisher: 5 min sprint/walk intervals
+### Simplified Workflow
+1. **Exercise Library**: Browse exercises from workout history
+2. **Log Exercise**: Select exercise, adjust parameters, log to today's workout
+3. **View Workouts**: See workout history with total volume/score calculations
 
-### Type B: Leg Day + Cardio
-- Warm-up: 5 min cycling
-- Leg exercises: Leg Press, Leg Curl, Leg Extension, Calf Raises, Glute Machine
-- Steady Cardio: 10 min cross-trainer at 70% max effort
+### Exercise Types
 
-### Type C: Circuit Training
-- Circuit format (3 rounds, minimal rest)
-- Kettlebell Swings, Push-ups, Bodyweight Squats, Dumbbell Rows, Plank
+#### Weight Training
+- **Fields**: weight (kg), reps, sets, RPE (1-10), notes
+- **Volume Calculation**: weight × reps × sets
+- **Examples**: Bench Press, Squats, Deadlifts
 
-### Type D: Cardio Variation
-- Weekly cardio variations (treadmill, cycling, rowing, stair machine)
-- Heart rate zone 2 (60-70% max)
+#### Cardio
+- **Fields**: time (minutes), speed (km/h), distance (km), calories, RPE (1-10), notes
+- **Score Calculation**: time × speed × RPE
+- **Examples**: Running, Cycling, Rowing
+
+### Workout Types
+- **Daily**: Standard daily workout log (default)
+- **Morning**: Morning session workouts
+- **Evening**: Evening session workouts
+- **Custom**: User-defined workout classifications
 
 ## Setup Instructions
 
@@ -99,75 +108,120 @@ fitness/
 
 ## API Endpoints
 
+### Authentication
+- `POST /auth/register` - Register new user
+- `POST /auth/login` - Login and get JWT token
+
 ### Workouts
-- `GET /workouts/` - List all workouts
+- `GET /workouts/` - List all workouts for authenticated user
 - `GET /workouts/{id}` - Get specific workout
 - `POST /workouts/` - Create new workout
 - `PUT /workouts/{id}` - Update workout
 - `DELETE /workouts/{id}` - Delete workout
-
-### Templates
-- `GET /templates/` - List all workout templates
-- `GET /templates/type/{type}` - Get templates by type (A, B, C, D)
-- `POST /templates/seed` - Seed database with predefined templates
 
 ## Data Models
 
 ### Workout
 ```json
 {
-  "date": "2024-01-15T10:30:00",
-  "workout_type": "C",
+  "date": "2026-01-18T10:30:00",
+  "workout_type": "Daily",
   "exercises": [
     {
-      "name": "Kettlebell Swings: 45 sec / 15 sec rest",
-      "weight": 10.0,
-      "reps": 15,
+      "name": "Bench Press",
+      "type": "weight",
+      "weight": 80.0,
+      "reps": 10,
       "sets": 3,
-      "rpe": 5,
-      "notes": "Focus on form"
+      "rpe": 7,
+      "notes": "Good form"
+    },
+    {
+      "name": "Running",
+      "type": "cardio",
+      "time": 30.0,
+      "speed": 12.0,
+      "distance": 6.0,
+      "calories": 350,
+      "rpe": 6
     }
   ],
-  "notes": "Circuit workout completed",
-  "total_volume": 450.0
+  "notes": "Great workout",
+  "total_volume": 2400.0
 }
 ```
 
-### Exercise
-- Name: Exercise description
-- Weight: Weight in kg (default: 10.0)
-- Reps: Number of repetitions (default: 15)
-- Sets: Number of sets (default: 3)
-- RPE: Rate of perceived exertion 1-10 (default: 5)
-- Notes: Additional notes
+### Exercise (Weight Training)
+- **name**: Exercise description (required)
+- **type**: "weight" (required)
+- **weight**: Weight in kg (optional)
+- **reps**: Number of repetitions (optional)
+- **sets**: Number of sets (optional)
+- **rpe**: Rate of perceived exertion 1-10 (default: 5)
+- **notes**: Additional notes (optional)
+
+### Exercise (Cardio)
+- **name**: Exercise description (required)
+- **type**: "cardio" (required)
+- **time**: Duration in minutes (optional)
+- **speed**: Speed in km/h (optional)
+- **distance**: Distance in km (optional)
+- **calories**: Calories burned (optional)
+- **rpe**: Rate of perceived exertion 1-10 (default: 5)
+- **notes**: Additional notes (optional)
 
 ## Development Notes
 
-- **Backend**: Uses FastAPI with Pydantic models for validation, PyMongo for MongoDB access
-- **Frontend**: Uses Provider for state management, HTTP package for API calls
-- **Database**: MongoDB with connection string: `mongodb://fitness:Juelsminde2025@172.32.0.3:27017`
+- **Backend**: FastAPI with Pydantic v2 models, PyMongo for MongoDB, JWT authentication
+- **Frontend**: Flutter with Provider state management, HTTP package for API calls
+- **Database**: MongoDB (connection configured via environment variables)
 - **Theme**: Dark theme with FlexColorScheme for consistent styling
+- **Package Manager**: UV for Python dependencies
+
+## Database Migration
+
+If upgrading from an older version, run the migration script to add the `type` field to existing exercises:
+
+```bash
+cd fastapi_backend
+uv run python migrate_exercises.py
+```
+
+This will set all existing exercises to `type='weight'` by default.
+
+## Recent Updates
+
+- ✅ Removed template system, simplified to Exercise Library → Workouts workflow
+- ✅ Added exercise type support (weight/cardio) with conditional fields
+- ✅ Fixed null type errors in exercise logging
+- ✅ Changed workout types from A/B/C/D to Daily/Morning/Evening/Custom
+- ✅ Made workout_type optional with "Daily" as default
+- ✅ Improved exercise library with filtering and search
+- ✅ Fixed UI issues with overlapping icons in input fields
 
 ## Next Steps (Future Enhancements)
 
-1. **Complete CRUD Operations**: Add create, edit, and detail screens for workouts
-2. **Template Selection**: Allow users to select from templates when creating workouts
-3. **Statistics**: Add charts and statistics for workout progress
-4. **Authentication**: Implement JWT authentication for user accounts
-5. **Offline Support**: Add local storage for offline functionality
-6. **Export Data**: Export workouts to CSV or PDF
-7. **Notifications**: Reminders for workout schedules
+1. **Exercise Management**: CRUD operations for custom exercises
+2. **Statistics & Charts**: Progress tracking with visualizations
+3. **Workout Programs**: Pre-built training programs
+4. **Export Data**: Export workouts to CSV or PDF
+5. **Notifications**: Reminders for workout schedules
+6. **Social Features**: Share workouts with friends
+7. **Offline Support**: Local storage for offline functionality
 
 ## Requirements Met
 
 - [x] Flutter app for workout tracking
-- [x] Four workout types (A-D) with predefined templates
-- [x] Workout parameters: Date, Type, Exercise, Weight, Reps, Sets, RPE, Notes, Total Volume
+- [x] Exercise Library for browsing and selecting exercises
+- [x] Multiple exercise types (weight training and cardio)
+- [x] Workout types: Daily, Morning, Evening, Custom
+- [x] Exercise parameters: Weight, Reps, Sets, Time, Speed, Distance, Calories, RPE, Notes
+- [x] Automatic volume/score calculation
 - [x] Date defaults to now() but editable
-- [x] Default values for exercises (Weight: 10, Reps: 15, Sets: 3, RPE: 5)
 - [x] FastAPI backend with MongoDB integration
+- [x] JWT authentication
 - [x] Dark theme UI
-- [x] MVP functionality with basic CRUD operations
+- [x] Complete CRUD operations for workouts
 
 ## GitHub Repository Setup
 
