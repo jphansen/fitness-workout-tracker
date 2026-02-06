@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../providers/exercise_provider.dart';
 import '../providers/workout_provider.dart';
 import '../models/exercise.dart';
 import '../models/workout.dart';
@@ -15,7 +17,6 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   String _filterType = 'all'; // 'all', 'weight', 'cardio'
-  List<Exercise> _allExercises = [];
 
   @override
   void initState() {
@@ -32,47 +33,13 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
   }
 
   Future<void> _loadExercises() async {
-    // TODO: Load exercises from Exercise Library API endpoint
-    // For now, show exercises from recent workouts
-    final provider = Provider.of<WorkoutProvider>(context, listen: false);
-    
-    await provider.loadWorkouts();
-    
-    // Extract all unique exercises from workouts
-    final Map<String, Exercise> uniqueExercises = {};
-    for (var workout in provider.workouts) {
-      for (var exercise in workout.exercises) {
-        // Ensure exercise has a type (handle legacy data)
-        final exerciseWithType = Exercise(
-          name: exercise.name,
-          type: exercise.type.isEmpty ? 'weight' : exercise.type,
-          weight: exercise.weight,
-          reps: exercise.reps,
-          sets: exercise.sets,
-          time: exercise.time,
-          speed: exercise.speed,
-          distance: exercise.distance,
-          calories: exercise.calories,
-          rpe: exercise.rpe,
-          notes: exercise.notes,
-        );
-        
-        // Use name + type as key to avoid duplicates
-        final key = '${exerciseWithType.name}_${exerciseWithType.type}';
-        if (!uniqueExercises.containsKey(key)) {
-          uniqueExercises[key] = exerciseWithType;
-        }
-      }
-    }
-    
-    setState(() {
-      _allExercises = uniqueExercises.values.toList()
-        ..sort((a, b) => a.name.compareTo(b.name));
-    });
+    final provider = Provider.of<ExerciseProvider>(context, listen: false);
+    await provider.loadExercisesWithFallback();
   }
 
-  List<Exercise> get _filteredExercises {
-    return _allExercises.where((exercise) {
+  List<Exercise> _filteredExercises(BuildContext context) {
+    final provider = Provider.of<ExerciseProvider>(context);
+    return provider.exercises.where((exercise) {
       final matchesSearch = exercise.name.toLowerCase().contains(_searchQuery.toLowerCase());
       final matchesType = _filterType == 'all' || exercise.type == _filterType;
       return matchesSearch && matchesType;
@@ -81,7 +48,9 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredExercises = _filteredExercises;
+    final exerciseProvider = Provider.of<ExerciseProvider>(context);
+    final filteredExercises = _filteredExercises(context);
+    final allExercises = exerciseProvider.exercises;
 
     return Scaffold(
       appBar: AppBar(
@@ -91,6 +60,13 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
             icon: const Icon(Icons.refresh),
             onPressed: _loadExercises,
             tooltip: 'Refresh',
+          ),
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () {
+              _showAddExerciseDialog(context);
+            },
+            tooltip: 'Add New Exercise',
           ),
         ],
       ),
@@ -137,7 +113,7 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
                   child: Row(
                     children: [
                       FilterChip(
-                        label: Text('All (${_allExercises.length})'),
+                        label: Text('All (${allExercises.length})'),
                         selected: _filterType == 'all',
                         onSelected: (selected) {
                           setState(() {
@@ -147,7 +123,7 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
                       ),
                       const SizedBox(width: 8),
                       FilterChip(
-                        label: Text('Weight (${_allExercises.where((e) => e.type == 'weight').length})'),
+                        label: Text('Weight (${allExercises.where((e) => e.type == 'weight').length})'),
                         avatar: const Icon(Icons.fitness_center, size: 18),
                         selected: _filterType == 'weight',
                         onSelected: (selected) {
@@ -158,7 +134,7 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
                       ),
                       const SizedBox(width: 8),
                       FilterChip(
-                        label: Text('Cardio (${_allExercises.where((e) => e.type == 'cardio').length})'),
+                        label: Text('Cardio (${allExercises.where((e) => e.type == 'cardio').length})'),
                         avatar: const Icon(Icons.directions_run, size: 18),
                         selected: _filterType == 'cardio',
                         onSelected: (selected) {
@@ -194,91 +170,52 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
           
           // Exercise list
           Expanded(
-            child: filteredExercises.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          _allExercises.isEmpty ? Icons.fitness_center : Icons.search_off,
-                          size: 64,
-                          color: Colors.grey[600],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          _allExercises.isEmpty
-                              ? 'No exercises available'
-                              : 'No exercises found',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _allExercises.isEmpty
-                              ? 'Create some templates with exercises first'
-                              : 'Try adjusting your search or filters',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[500],
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: filteredExercises.length,
-                    itemBuilder: (context, index) {
-                      final exercise = filteredExercises[index];
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: exercise.type == 'weight'
-                                ? Colors.blue
-                                : Colors.green,
-                            child: Icon(
-                              exercise.type == 'weight'
-                                  ? Icons.fitness_center
-                                  : Icons.directions_run,
-                              color: Colors.white,
+            child: exerciseProvider.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : filteredExercises.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              allExercises.isEmpty ? Icons.fitness_center : Icons.search_off,
+                              size: 64,
+                              color: Colors.grey[600],
                             ),
-                          ),
-                          title: Text(
-                            exercise.name,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Text(
-                            exercise.type == 'weight'
-                                ? 'Weight Training: ${exercise.sets ?? 0} sets × ${exercise.reps ?? 0} reps @ ${exercise.weight ?? 0}kg'
-                                : 'Cardio: ${exercise.time ?? 0} min @ ${exercise.speed ?? 0} km/h',
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.info_outline),
-                                onPressed: () {
-                                  _showExerciseDetails(context, exercise);
-                                },
-                                tooltip: 'View details',
+                            const SizedBox(height: 16),
+                            Text(
+                              allExercises.isEmpty
+                                  ? 'No exercises available'
+                                  : 'No exercises found',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey[600],
                               ),
-                              Icon(
-                                Icons.add_circle,
-                                color: Colors.green[400],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              allExercises.isEmpty
+                                  ? 'Tap + to add your first exercise'
+                                  : 'Try adjusting your search or filters',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[500],
+                              ),
+                            ),
+                            if (allExercises.isEmpty) ...[
+                              const SizedBox(height: 16),
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  _showAddExerciseDialog(context);
+                                },
+                                icon: const Icon(Icons.add),
+                                label: const Text('Add First Exercise'),
                               ),
                             ],
-                          ),
-                          onTap: () {
-                            _logExercise(context, exercise);
-                          },
+                          ],
                         ),
-                      );
-                    },
-                  ),
+                      )
+                    : _buildExerciseList(filteredExercises, context),
           ),
         ],
       ),
@@ -468,6 +405,125 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildExerciseList(List<Exercise> exercises, BuildContext context) {
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: exercises.length,
+      itemBuilder: (context, index) {
+        final exercise = exercises[index];
+        return Card(
+          margin: const EdgeInsets.only(bottom: 8),
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundColor: exercise.type == 'weight'
+                  ? Colors.blue
+                  : Colors.green,
+              child: Icon(
+                exercise.type == 'weight'
+                    ? Icons.fitness_center
+                    : Icons.directions_run,
+                color: Colors.white,
+              ),
+            ),
+            title: Text(
+              exercise.name,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  exercise.type == 'weight' ? 'Weight Training' : 'Cardio',
+                  style: const TextStyle(fontSize: 12),
+                ),
+                if (exercise.lastUsed != null)
+                  Text(
+                    'Last used: ${DateFormat('MMM d').format(exercise.lastUsed!)}',
+                    style: const TextStyle(fontSize: 10, color: Colors.grey),
+                  ),
+              ],
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.info_outline),
+                  onPressed: () {
+                    _showExerciseDetails(context, exercise);
+                  },
+                  tooltip: 'View details',
+                ),
+                Icon(
+                  Icons.add_circle,
+                  color: Colors.green[400],
+                ),
+              ],
+            ),
+            onTap: () {
+              _logExercise(context, exercise);
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showAddExerciseDialog(BuildContext context) async {
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) => _AddExerciseDialog(),
+    );
+    
+    if (result != null) {
+      final String name = result['name'];
+      final String type = result['type'];
+      final double? weight = result['weight'];
+      final int? reps = result['reps'];
+      final int? sets = result['sets'];
+      final double? time = result['time'];
+      final double? speed = result['speed'];
+      final double? distance = result['distance'];
+      final int? calories = result['calories'];
+      
+      final newExercise = Exercise(
+        name: name,
+        type: type,
+        weight: weight,
+        reps: reps,
+        sets: sets,
+        time: time,
+        speed: speed,
+        distance: distance,
+        calories: calories,
+        rpe: 5,
+      );
+      
+      // Save to backend via ExerciseProvider with fallback to local storage
+      final provider = Provider.of<ExerciseProvider>(context, listen: false);
+      try {
+        final createdExercise = await provider.createExerciseWithFallback(newExercise);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Added new exercise: $name'),
+            action: SnackBarAction(
+              label: 'Log Now',
+              onPressed: () {
+                _logExercise(context, createdExercise);
+              },
+            ),
+          ),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error saving exercise: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }
 
@@ -753,6 +809,299 @@ class _LogExerciseDialogState extends State<_LogExerciseDialog> {
         Navigator.pop(context, exercise);
       } catch (e) {
         print('DEBUG: Error creating exercise: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error creating exercise: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+}
+
+// Add Exercise Dialog
+class _AddExerciseDialog extends StatefulWidget {
+  @override
+  State<_AddExerciseDialog> createState() => _AddExerciseDialogState();
+}
+
+class _AddExerciseDialogState extends State<_AddExerciseDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _nameController = TextEditingController();
+  String _selectedType = 'weight';
+  final TextEditingController _weightController = TextEditingController(text: '10.0');
+  final TextEditingController _repsController = TextEditingController(text: '15');
+  final TextEditingController _setsController = TextEditingController(text: '3');
+  final TextEditingController _timeController = TextEditingController(text: '30.0');
+  final TextEditingController _speedController = TextEditingController(text: '10.0');
+  final TextEditingController _distanceController = TextEditingController(text: '5.0');
+  final TextEditingController _caloriesController = TextEditingController(text: '300');
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _weightController.dispose();
+    _repsController.dispose();
+    _setsController.dispose();
+    _timeController.dispose();
+    _speedController.dispose();
+    _distanceController.dispose();
+    _caloriesController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Row(
+        children: [
+          Icon(Icons.add_circle),
+          SizedBox(width: 12),
+          Text('Add New Exercise'),
+        ],
+      ),
+      content: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Exercise Name',
+                  border: OutlineInputBorder(),
+                  hintText: 'e.g., Bench Press, Running',
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter exercise name';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              
+              // Exercise Type Selection
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Exercise Type',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ChoiceChip(
+                          label: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.fitness_center, size: 18),
+                              SizedBox(width: 8),
+                              Text('Weight'),
+                            ],
+                          ),
+                          selected: _selectedType == 'weight',
+                          onSelected: (selected) {
+                            setState(() {
+                              _selectedType = 'weight';
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ChoiceChip(
+                          label: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.directions_run, size: 18),
+                              SizedBox(width: 8),
+                              Text('Cardio'),
+                            ],
+                          ),
+                          selected: _selectedType == 'cardio',
+                          onSelected: (selected) {
+                            setState(() {
+                              _selectedType = 'cardio';
+                            });
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              
+              // Type-specific fields
+              if (_selectedType == 'weight') ...[
+                TextFormField(
+                  controller: _weightController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Default Weight (kg)',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter weight';
+                    }
+                    if (double.tryParse(value) == null) {
+                      return 'Please enter a valid number';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _repsController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Default Reps',
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Required';
+                          }
+                          if (int.tryParse(value) == null) {
+                            return 'Invalid';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _setsController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Default Sets',
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Required';
+                          }
+                          if (int.tryParse(value) == null) {
+                            return 'Invalid';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ] else ...[
+                TextFormField(
+                  controller: _timeController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Default Time (minutes)',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter time';
+                    }
+                    if (double.tryParse(value) == null) {
+                      return 'Please enter a valid number';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _speedController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Default Speed (km/h)',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter speed';
+                    }
+                    if (double.tryParse(value) == null) {
+                      return 'Please enter a valid number';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _distanceController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Default Distance (km)',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _caloriesController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Default Calories',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton.icon(
+          onPressed: _save,
+          icon: const Icon(Icons.check),
+          label: const Text('Add Exercise'),
+        ),
+      ],
+    );
+  }
+
+  void _save() {
+    if (_formKey.currentState!.validate()) {
+      try {
+        final Map<String, dynamic> result = {
+          'name': _nameController.text,
+          'type': _selectedType,
+        };
+        
+        if (_selectedType == 'weight') {
+          result['weight'] = double.tryParse(_weightController.text);
+          result['reps'] = int.tryParse(_repsController.text);
+          result['sets'] = int.tryParse(_setsController.text);
+        } else {
+          result['time'] = double.tryParse(_timeController.text);
+          result['speed'] = double.tryParse(_speedController.text);
+          result['distance'] = double.tryParse(_distanceController.text);
+          result['calories'] = int.tryParse(_caloriesController.text);
+        }
+        
+        Navigator.pop(context, result);
+      } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error creating exercise: $e'),

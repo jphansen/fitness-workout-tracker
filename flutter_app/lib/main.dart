@@ -10,6 +10,7 @@ import 'screens/workout_detail_screen.dart';
 import 'services/auth_service.dart';
 import 'services/api_service.dart';
 import 'providers/workout_provider.dart';
+import 'providers/exercise_provider.dart';
 import 'models/workout.dart';
 
 void main() {
@@ -35,6 +36,11 @@ class FitnessTrackerApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<WorkoutProvider>(
           create: (context) => WorkoutProvider(
+            apiService: Provider.of<ApiService>(context, listen: false),
+          ),
+        ),
+        ChangeNotifierProvider<ExerciseProvider>(
+          create: (context) => ExerciseProvider(
             apiService: Provider.of<ApiService>(context, listen: false),
           ),
         ),

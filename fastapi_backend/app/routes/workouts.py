@@ -4,7 +4,7 @@ from bson import ObjectId
 
 from app.database.mongodb import get_workouts_collection
 from app.models.workout import (
-    WorkoutCreate, WorkoutUpdate, WorkoutResponse, WorkoutInDB, Exercise
+    WorkoutCreate, WorkoutUpdate, WorkoutResponse, WorkoutInDB, WorkoutExercise
 )
 from app.auth.dependencies import get_current_user
 
@@ -113,8 +113,8 @@ async def update_workout(
     
     # If exercises are updated, recalculate total volume
     if "exercises" in update_data:
-        # Convert exercise dictionaries to Exercise instances for volume calculation
-        exercise_instances = [Exercise(**ex) for ex in update_data["exercises"]]
+        # Convert exercise dictionaries to WorkoutExercise instances for volume calculation
+        exercise_instances = [WorkoutExercise(**ex) for ex in update_data["exercises"]]
         # Create temporary workout to calculate volume
         temp_workout = WorkoutInDB(**existing)
         temp_workout.exercises = exercise_instances

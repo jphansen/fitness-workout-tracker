@@ -77,15 +77,15 @@ def test_auth():
                 print(f"   ✗ Failed to get workouts: {response.status_code}")
                 print(f"   Response: {response.text}")
             
-            # Test 5: Test protected template endpoints
-            print("\n5. Testing protected template endpoints...")
-            response = requests.get(f"{BASE_URL}/templates/", headers=headers)
-            print(f"   GET /templates status: {response.status_code}")
+            # Test 5: Test protected exercise endpoints
+            print("\n5. Testing protected exercise endpoints...")
+            response = requests.get(f"{BASE_URL}/exercises/", headers=headers)
+            print(f"   GET /exercises status: {response.status_code}")
             if response.status_code == 200:
-                templates = response.json()
-                print(f"   ✓ Retrieved {len(templates)} templates")
+                exercises = response.json()
+                print(f"   ✓ Retrieved {len(exercises)} exercises")
             else:
-                print(f"   ✗ Failed to get templates: {response.status_code}")
+                print(f"   ✗ Failed to get exercises: {response.status_code}")
                 print(f"   Response: {response.text}")
             
             # Test 6: Test without authentication (should fail)

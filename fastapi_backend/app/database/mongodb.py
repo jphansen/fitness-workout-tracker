@@ -60,9 +60,9 @@ def get_workouts_collection():
     return mongodb.get_collection("workouts")
 
 
-def get_templates_collection():
-    return mongodb.get_collection("templates")
-
-
 def get_users_collection():
     return mongodb.get_collection("users")
+
+
+def get_exercises_collection():
+    return mongodb.get_collection("exercises")

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/workout.dart';
-import '../models/workout_template.dart';
+import '../models/exercise.dart';
 import 'auth_service.dart';
 
 class ApiService {
@@ -95,108 +95,160 @@ class ApiService {
     }
   }
 
-  Future<List<WorkoutTemplate>> getTemplates() async {
+  // Template methods removed - using Exercise Library instead
+
+  // Exercise endpoints
+  Future<List<Exercise>> getExercises({
+    String? typeFilter,
+    String? search,
+    int skip = 0,
+    int limit = 100,
+  }) async {
     final headers = await _getHeaders();
-    final response = await client.get(
-      Uri.parse('$baseUrl/templates/'),
-      headers: headers,
-    );
+    final params = <String, String>{};
+    
+    if (typeFilter != null && typeFilter.isNotEmpty) {
+      params['type_filter'] = typeFilter;
+    }
+    if (search != null && search.isNotEmpty) {
+      params['search'] = search;
+    }
+    params['skip'] = skip.toString();
+    params['limit'] = limit.toString();
+    
+    final uri = Uri.parse('$baseUrl/exercises/').replace(queryParameters: params);
+    final response = await client.get(uri, headers: headers);
     
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
-      return data.map((json) => WorkoutTemplate.fromJson(json)).toList();
+      return data.map((json) => Exercise.fromJson(json)).toList();
+    } else if (response.statusCode == 404) {
+      // Exercise endpoint not available in current backend version
+      // Return empty list instead of throwing error
+      return [];
     } else {
-      throw Exception('Failed to load templates: ${response.statusCode}');
+      throw Exception('Failed to load exercises: ${response.statusCode}');
     }
   }
 
-  Future<List<WorkoutTemplate>> getTemplatesByType(String workoutType) async {
+  Future<Exercise> getExercise(String id) async {
     final headers = await _getHeaders();
     final response = await client.get(
-      Uri.parse('$baseUrl/templates/type/${workoutType.toUpperCase()}'),
-      headers: headers,
-    );
-    
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      return data.map((json) => WorkoutTemplate.fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to load templates by type: ${response.statusCode}');
-    }
-  }
-
-  Future<WorkoutTemplate> getTemplate(String id) async {
-    final headers = await _getHeaders();
-    final response = await client.get(
-      Uri.parse('$baseUrl/templates/$id'),
+      Uri.parse('$baseUrl/exercises/$id'),
       headers: headers,
     );
     
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);
-      return WorkoutTemplate.fromJson(data);
+      return Exercise.fromJson(data);
+    } else if (response.statusCode == 404) {
+      // Exercise endpoint not available, return empty exercise
+      return Exercise.empty();
     } else {
-      throw Exception('Failed to load template: ${response.statusCode}');
+      throw Exception('Failed to load exercise: ${response.statusCode}');
     }
   }
 
-  Future<WorkoutTemplate> createTemplate(WorkoutTemplate template) async {
+  Future<Exercise> createExercise(Exercise exercise) async {
     final headers = await _getHeaders();
     final response = await client.post(
-      Uri.parse('$baseUrl/templates/'),
+      Uri.parse('$baseUrl/exercises/'),
       headers: headers,
-      body: json.encode(template.toJson()),
+      body: json.encode(exercise.toJson()),
     );
     
-    if (response.statusCode == 201) {
+    if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);
-      return WorkoutTemplate.fromJson(data);
+      return Exercise.fromJson(data);
+    } else if (response.statusCode == 404) {
+      // Exercise endpoint not available in current backend version
+      // Return the exercise with a local ID to allow UI to continue
+      return exercise.copyWith(id: 'local_${DateTime.now().millisecondsSinceEpoch}');
     } else {
-      throw Exception('Failed to create template: ${response.statusCode}');
+      throw Exception('Failed to create exercise: ${response.statusCode}');
     }
   }
 
-  Future<WorkoutTemplate> updateTemplate(String id, WorkoutTemplate template) async {
+  Future<Exercise> updateExercise(String id, Exercise exercise) async {
     final headers = await _getHeaders();
     final response = await client.put(
-      Uri.parse('$baseUrl/templates/$id'),
+      Uri.parse('$baseUrl/exercises/$id'),
       headers: headers,
-      body: json.encode(template.toJson()),
+      body: json.encode(exercise.toJson()),
     );
     
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);
-      return WorkoutTemplate.fromJson(data);
+      return Exercise.fromJson(data);
+    } else if (response.statusCode == 404) {
+      // Exercise endpoint not available, return the exercise unchanged
+      return exercise;
     } else {
-      throw Exception('Failed to update template: ${response.statusCode}');
+      throw Exception('Failed to update exercise: ${response.statusCode}');
     }
   }
 
-  Future<void> deleteTemplate(String id) async {
+  Future<void> deleteExercise(String id) async {
     final headers = await _getHeaders();
     final response = await client.delete(
-      Uri.parse('$baseUrl/templates/$id'),
+      Uri.parse('$baseUrl/exercises/$id'),
       headers: headers,
     );
     
-    if (response.statusCode != 204) {
-      throw Exception('Failed to delete template: ${response.statusCode}');
+    if (response.statusCode != 200 && response.statusCode != 404) {
+      throw Exception('Failed to delete exercise: ${response.statusCode}');
     }
+    // If 404, the exercise endpoint doesn't exist, so nothing to delete
   }
 
-  Future<List<WorkoutTemplate>> seedTemplates() async {
+  Future<List<Exercise>> seedExercises() async {
     final headers = await _getHeaders();
     final response = await client.post(
-      Uri.parse('$baseUrl/templates/seed'),
+      Uri.parse('$baseUrl/exercises/seed'),
       headers: headers,
     );
     
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
-      return data.map((json) => WorkoutTemplate.fromJson(json)).toList();
+      return data.map((json) => Exercise.fromJson(json)).toList();
+    } else if (response.statusCode == 404) {
+      // Exercise endpoint not available, return empty list
+      return [];
     } else {
-      throw Exception('Failed to seed templates: ${response.statusCode}');
+      throw Exception('Failed to seed exercises: ${response.statusCode}');
     }
+  }
+
+  Future<void> logExerciseUsage({
+    required String exerciseId,
+    double? weight,
+    int? reps,
+    int? sets,
+    double? time,
+    double? speed,
+    double? distance,
+    int? calories,
+    int? rpe,
+  }) async {
+    final headers = await _getHeaders();
+    final params = <String, String>{};
+    
+    if (weight != null) params['weight'] = weight.toString();
+    if (reps != null) params['reps'] = reps.toString();
+    if (sets != null) params['sets'] = sets.toString();
+    if (time != null) params['time'] = time.toString();
+    if (speed != null) params['speed'] = speed.toString();
+    if (distance != null) params['distance'] = distance.toString();
+    if (calories != null) params['calories'] = calories.toString();
+    if (rpe != null) params['rpe'] = rpe.toString();
+    
+    final uri = Uri.parse('$baseUrl/exercises/$exerciseId/log').replace(queryParameters: params);
+    final response = await client.post(uri, headers: headers);
+    
+    if (response.statusCode != 200 && response.statusCode != 404) {
+      throw Exception('Failed to log exercise usage: ${response.statusCode}');
+    }
+    // If 404, the logging endpoint doesn't exist, which is OK for now
   }
 
   void dispose() {

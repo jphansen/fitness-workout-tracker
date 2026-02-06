@@ -27,10 +27,10 @@ class PyObjectId(ObjectId):
         raise ValueError("Invalid ObjectId")
 
 
-class Exercise(BaseModel):
-    """Exercise model within a workout"""
+class WorkoutExercise(BaseModel):
+    """Exercise instance within a workout (actual performed exercise)"""
     name: str = Field(..., description="Name of the exercise")
-    type: str = Field("weight", description="Exercise type: 'weight' or 'cardio'")
+    type: str = Field("weight", pattern="^(weight|cardio)$", description="Exercise type: 'weight' or 'cardio'")
     
     # Weight training fields
     weight: Optional[float] = Field(None, description="Weight in kg")
@@ -76,7 +76,7 @@ class WorkoutCreate(BaseModel):
     """Model for creating a new workout"""
     date: datetime = Field(default_factory=datetime.now, description="Workout date")
     workout_type: str = Field("Daily", description="Workout type (optional, default: Daily)")
-    exercises: List[Exercise] = Field(..., description="List of exercises")
+    exercises: List[WorkoutExercise] = Field(..., description="List of exercises")
     notes: Optional[str] = Field(None, description="Overall workout notes")
     user_id: Optional[str] = Field(None, description="User ID (will be set from auth token)")
     
@@ -100,7 +100,7 @@ class WorkoutUpdate(BaseModel):
     """Model for updating a workout"""
     date: Optional[datetime] = None
     workout_type: Optional[str] = None
-    exercises: Optional[List[Exercise]] = None
+    exercises: Optional[List[WorkoutExercise]] = None
     notes: Optional[str] = None
 
 

@@ -44,7 +44,7 @@ class _WorkoutListScreenState extends State<WorkoutListScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const CreateWorkoutScreen(),
+                  builder: (context) => const ExerciseListScreen(),
                 ),
               );
             },
@@ -192,12 +192,12 @@ class _WorkoutListScreenState extends State<WorkoutListScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const CreateWorkoutScreen(),
+                          builder: (context) => const ExerciseListScreen(),
                         ),
                       );
                     },
                     icon: const Icon(Icons.add),
-                    label: const Text('Create Workout'),
+                    label: const Text('Add Exercise'),
                   ),
                 ],
               ),
@@ -218,7 +218,7 @@ class _WorkoutListScreenState extends State<WorkoutListScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const CreateWorkoutScreen(),
+              builder: (context) => const ExerciseListScreen(),
             ),
           );
         },

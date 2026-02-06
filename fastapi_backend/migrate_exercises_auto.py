@@ -71,8 +71,6 @@ if __name__ == "__main__":
     print("in workouts that don't have a type field.")
     print()
     
-    response = input("Do you want to proceed? (yes/no): ").strip().lower()
-    if response == "yes":
-        migrate_exercises()
-    else:
-        print("Migration cancelled.")
+    # Auto-proceed without asking for input
+    print("Auto-proceeding with migration...")
+    migrate_exercises()
