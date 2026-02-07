@@ -17,15 +17,71 @@ void main() {
   runApp(const FitnessTrackerApp());
 }
 
-class FitnessTrackerApp extends StatelessWidget {
+class FitnessTrackerApp extends StatefulWidget {
   const FitnessTrackerApp({super.key});
 
   @override
+  State<FitnessTrackerApp> createState() => _FitnessTrackerAppState();
+}
+
+class _FitnessTrackerAppState extends State<FitnessTrackerApp> {
+  bool _isInitializing = true;
+  late AuthService _authService;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    // Create auth service and initialize it to load cached credentials
+    _authService = AuthService();
+    await _authService.init();
+    
+    setState(() {
+      _isInitializing = false;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isInitializing) {
+      return MaterialApp(
+        home: Scaffold(
+          backgroundColor: const Color(0xFF1A237E),
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.fitness_center,
+                  size: 80,
+                  color: Colors.white,
+                ),
+                const SizedBox(height: 20),
+                const CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Loading Fitness Tracker...',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.8),
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return MultiProvider(
       providers: [
         Provider<AuthService>(
-          create: (_) => AuthService(),
+          create: (_) => _authService,
           dispose: (_, authService) => authService.dispose(),
         ),
         Provider<ApiService>(
