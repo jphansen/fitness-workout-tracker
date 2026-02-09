@@ -119,7 +119,7 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Use the Exercise Library from the menu to manage exercises'),
-        duration: Duration(seconds: 2),
+        duration: Duration(seconds: 4),
       ),
     );
     
@@ -141,7 +141,7 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Added ${selectedExercise.name}. Customize the values below.'),
-            duration: const Duration(seconds: 2),
+            duration: Duration(seconds: 4),
           ),
         );
       }
@@ -166,7 +166,10 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
           try {
             await provider.updateWorkout(widget.workoutToEdit!.id!, workout);
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Workout updated successfully')),
+              const SnackBar(
+                content: Text('Workout updated successfully'),
+                duration: Duration(seconds: 4),
+              ),
             );
             if (mounted) {
               Navigator.pop(context);
@@ -199,7 +202,10 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
                 final newWorkout = workout.copyWith(id: null);
                 await provider.createWorkout(newWorkout);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Workout saved as new copy')),
+                  const SnackBar(
+                    content: Text('Workout saved as new copy'),
+                    duration: Duration(seconds: 4),
+                  ),
                 );
                 if (mounted) {
                   Navigator.pop(context);
@@ -210,7 +216,10 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
         } else {
           await provider.createWorkout(workout);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Workout created successfully')),
+            const SnackBar(
+              content: Text('Workout created successfully'),
+              duration: Duration(seconds: 4),
+            ),
           );
           if (mounted) {
             Navigator.pop(context);
@@ -220,7 +229,7 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: $e'),
-            duration: const Duration(seconds: 5),
+            duration: Duration(seconds: 4),
           ),
         );
       }
@@ -652,8 +661,8 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
               children: [
                 Text(
                   exercise.type == 'weight'
-                      ? 'Volume: ${exercise.volume.toStringAsFixed(1)} kg'
-                      : 'Score: ${exercise.volume.toStringAsFixed(1)}',
+                      ? 'Volume: ${exercise.weightVolume.toStringAsFixed(1)} kg'
+                      : 'Score: ${exercise.cardioScore.toStringAsFixed(1)}',
                   style: const TextStyle(fontSize: 12, color: Colors.grey),
                 ),
                 Text(
@@ -696,7 +705,9 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
               style: const TextStyle(fontStyle: FontStyle.italic),
             ),
             Text(
-              'Volume: ${exercise.volume.toStringAsFixed(1)} kg',
+              exercise.type == 'weight'
+                  ? 'Volume: ${exercise.weightVolume.toStringAsFixed(1)} kg'
+                  : 'Score: ${exercise.cardioScore.toStringAsFixed(1)}',
               style: const TextStyle(fontStyle: FontStyle.italic),
             ),
           ],

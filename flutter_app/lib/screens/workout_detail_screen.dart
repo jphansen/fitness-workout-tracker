@@ -10,8 +10,6 @@ class WorkoutDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final totalVolume = workout.calculateTotalVolume();
-    
     return Scaffold(
       appBar: AppBar(
         title: Text('Workout ${workout.dateOnly}'),
@@ -33,7 +31,10 @@ class WorkoutDetailScreen extends StatelessWidget {
             onPressed: () {
               // TODO: Implement share functionality
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Share feature coming soon')),
+                const SnackBar(
+                  content: Text('Share feature coming soon'),
+                  duration: Duration(seconds: 4),
+                ),
               );
             },
             tooltip: 'Share workout',
@@ -100,9 +101,14 @@ class WorkoutDetailScreen extends StatelessWidget {
                           Icons.fitness_center,
                         ),
                         _buildStatCard(
-                          'Total Volume',
-                          '${totalVolume.toStringAsFixed(1)} kg',
+                          'Volume',
+                          '${workout.calculateTotalWeightVolume().toStringAsFixed(1)} kg',
                           Icons.scale,
+                        ),
+                        _buildStatCard(
+                          'Score',
+                          '${workout.calculateTotalCardioScore().toStringAsFixed(1)}',
+                          Icons.star,
                         ),
                         _buildStatCard(
                           'Sets',
@@ -198,8 +204,8 @@ class WorkoutDetailScreen extends StatelessWidget {
                 Chip(
                   label: Text(
                     exercise.type == 'weight'
-                        ? '${exercise.volume.toStringAsFixed(1)} kg'
-                        : 'Score: ${exercise.volume.toStringAsFixed(1)}',
+                        ? '${exercise.weightVolume.toStringAsFixed(1)} kg'
+                        : 'Score: ${exercise.cardioScore.toStringAsFixed(1)}',
                     style: const TextStyle(fontSize: 12),
                   ),
                 ),

@@ -274,6 +274,7 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('${exercise.name} added to today\'s workout'),
+              duration: Duration(seconds: 4),
               action: SnackBarAction(
                 label: 'View',
                 onPressed: () {
@@ -301,6 +302,7 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Created today\'s workout with ${exercise.name}'),
+              duration: Duration(seconds: 4),
               action: SnackBarAction(
                 label: 'View',
                 onPressed: () {
@@ -318,6 +320,7 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error saving exercise: $e'),
+            duration: Duration(seconds: 4),
             backgroundColor: Colors.red,
           ),
         );
@@ -507,6 +510,7 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Added new exercise: $name'),
+            duration: Duration(seconds: 4),
             action: SnackBarAction(
               label: 'Log Now',
               onPressed: () {
@@ -519,6 +523,7 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error saving exercise: $e'),
+            duration: Duration(seconds: 4),
             backgroundColor: Colors.red,
           ),
         );
@@ -812,6 +817,14 @@ class _LogExerciseDialogState extends State<_LogExerciseDialog> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error creating exercise: $e'),
+            duration: Duration(seconds: 4),
+            backgroundColor: Colors.red,
+          ),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error creating exercise: $e'),
+            duration: Duration(seconds: 4),
             backgroundColor: Colors.red,
           ),
         );
@@ -1105,6 +1118,7 @@ class _AddExerciseDialogState extends State<_AddExerciseDialog> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error creating exercise: $e'),
+            duration: Duration(seconds: 4),
             backgroundColor: Colors.red,
           ),
         );

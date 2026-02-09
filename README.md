@@ -12,7 +12,7 @@ A full-stack workout tracking application with Flutter frontend and FastAPI back
 - **Dark Theme**: Modern dark theme UI with Material Design
 - **REST API**: FastAPI backend with MongoDB integration
 - **State Management**: Provider pattern for efficient state management
-- **Authentication**: JWT-based user authentication
+- **Authentication**: JWT-based user authentication with auto-login via credential caching
 
 ## Project Structure
 
@@ -191,6 +191,7 @@ This will set all existing exercises to `type='weight'` by default.
 
 ## Recent Updates
 
+- ✅ **Credential Caching & Auto-Login**: Implemented secure credential caching with loading screen, allowing users to stay logged in across app restarts
 - ✅ **Offline Support**: Added local storage persistence for exercises with graceful fallback when backend is unavailable
 - ✅ **Error Handling**: Implemented comprehensive error handling for 404 and backend connectivity issues
 - ✅ **Exercise Provider Enhancements**: Added `loadExercisesWithFallback`, `createExerciseWithFallback`, and other fallback methods

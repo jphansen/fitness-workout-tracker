@@ -64,6 +64,14 @@ class Workout {
     return exercises.fold(0.0, (sum, exercise) => sum + exercise.volume);
   }
 
+  double calculateTotalWeightVolume() {
+    return exercises.fold(0.0, (sum, exercise) => sum + exercise.weightVolume);
+  }
+
+  double calculateTotalCardioScore() {
+    return exercises.fold(0.0, (sum, exercise) => sum + exercise.cardioScore);
+  }
+
   Workout copyWith({
     String? id,
     DateTime? date,

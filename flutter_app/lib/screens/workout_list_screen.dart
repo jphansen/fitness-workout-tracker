@@ -106,7 +106,10 @@ class _WorkoutListScreenState extends State<WorkoutListScreen> {
               onTap: () {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Statistics coming soon')),
+                  const SnackBar(
+                    content: Text('Statistics coming soon'),
+                    duration: Duration(seconds: 4),
+                  ),
                 );
               },
             ),
@@ -117,7 +120,10 @@ class _WorkoutListScreenState extends State<WorkoutListScreen> {
               onTap: () {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Settings coming soon')),
+                  const SnackBar(
+                    content: Text('Settings coming soon'),
+                    duration: Duration(seconds: 4),
+                  ),
                 );
               },
             ),
@@ -127,7 +133,10 @@ class _WorkoutListScreenState extends State<WorkoutListScreen> {
               onTap: () {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Help coming soon')),
+                  const SnackBar(
+                    content: Text('Help coming soon'),
+                    duration: Duration(seconds: 4),
+                  ),
                 );
               },
             ),
@@ -246,7 +255,13 @@ class _WorkoutListScreenState extends State<WorkoutListScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('${workout.exercises.length} exercises'),
-            Text('Total Volume: ${workout.totalVolume.toStringAsFixed(1)} kg'),
+            Row(
+              children: [
+                Text('Volume: ${workout.calculateTotalWeightVolume().toStringAsFixed(1)} kg'),
+                const SizedBox(width: 16),
+                Text('Score: ${workout.calculateTotalCardioScore().toStringAsFixed(1)}'),
+              ],
+            ),
             if (workout.notes != null && workout.notes!.isNotEmpty)
               Text(
                 'Notes: ${workout.notes!}',

@@ -171,6 +171,10 @@ class Exercise {
     return 0.0;
   }
 
+  double get weightVolume => type == 'weight' ? volume : 0.0;
+  
+  double get cardioScore => type == 'cardio' ? volume : 0.0;
+
   Exercise copyWith({
     String? id,
     String? name,
