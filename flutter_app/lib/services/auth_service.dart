@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'auth_exception.dart';
 
 class AuthService {
   static const String baseUrl = 'https://fitness.asvig.com';
@@ -109,6 +110,57 @@ class AuthService {
       final error = json.decode(response.body);
       throw Exception(error['detail'] ?? 'Failed to get user info: ${response.statusCode}');
     }
+  }
+
+  /// Validates the current token by making a lightweight API call
+  /// Returns true if token is valid, false otherwise
+  Future<bool> validateToken() async {
+    if (_token == null) {
+      return false;
+    }
+    
+    try {
+      final headers = await getAuthHeaders();
+      final response = await client.get(
+        Uri.parse('$baseUrl/auth/validate'),
+        headers: headers,
+      );
+      
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Handles authentication errors (e.g., 401 Unauthorized)
+  /// Clears the token and logs out the user
+  Future<void> handleAuthError({int? statusCode, String? details}) async {
+    // Clear the invalid token
+    _token = null;
+    _username = null;
+    
+    // Remove from secure storage
+    await storage.delete(key: _tokenKey);
+    await storage.delete(key: _usernameKey);
+    
+    // You can add additional logic here, like logging or analytics
+    print('Authentication error handled. Status: $statusCode, Details: $details');
+  }
+
+  /// Checks if an exception is an authentication error
+  bool isAuthError(dynamic error) {
+    if (error is AuthenticationException) {
+      return true;
+    }
+    
+    if (error is Exception) {
+      final errorString = error.toString();
+      return errorString.contains('401') || 
+             errorString.contains('Unauthorized') ||
+             errorString.contains('AuthenticationException');
+    }
+    
+    return false;
   }
   
   Future<Map<String, dynamic>> refreshToken() async {

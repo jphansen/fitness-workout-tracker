@@ -39,6 +39,24 @@ class _FitnessTrackerAppState extends State<FitnessTrackerApp> {
     _authService = AuthService();
     await _authService.init();
     
+    // Validate token if user is logged in
+    if (_authService.isLoggedIn) {
+      try {
+        final isValid = await _authService.validateToken();
+        if (!isValid) {
+          // Token is invalid, clear it
+          await _authService.handleAuthError(
+            statusCode: 401,
+            details: 'Token validation failed on app startup',
+          );
+        }
+      } catch (e) {
+        // If validation fails (e.g., network error), we'll keep the token
+        // but the next API call will handle the authentication error
+        print('Token validation error on startup: $e');
+      }
+    }
+    
     setState(() {
       _isInitializing = false;
     });

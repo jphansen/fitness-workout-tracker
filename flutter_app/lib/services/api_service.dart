@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/workout.dart';
 import '../models/exercise.dart';
 import 'auth_service.dart';
+import 'auth_exception.dart';
 
 class ApiService {
   static const String baseUrl = 'https://fitness.asvig.com';
@@ -21,11 +22,34 @@ class ApiService {
     return await authService.getAuthHeaders();
   }
 
+  /// Helper method to handle HTTP responses and check for authentication errors
+  /// Throws AuthenticationException for 401 responses, handles logout automatically
+  Future<http.Response> _handleResponse(http.Response response) async {
+    if (response.statusCode == 401) {
+      // Handle authentication error
+      await authService.handleAuthError(
+        statusCode: response.statusCode,
+        details: 'Unauthorized access - token may be invalid or expired',
+      );
+      
+      // Throw specific authentication exception
+      throw AuthenticationException(
+        'Authentication failed: ${response.statusCode}',
+        statusCode: response.statusCode,
+        details: response.body.isNotEmpty ? json.decode(response.body)['detail'] : null,
+      );
+    }
+    
+    return response;
+  }
+
   Future<List<Workout>> getWorkouts() async {
     final headers = await _getHeaders();
-    final response = await client.get(
-      Uri.parse('$baseUrl/workouts/'),
-      headers: headers,
+    final response = await _handleResponse(
+      await client.get(
+        Uri.parse('$baseUrl/workouts/'),
+        headers: headers,
+      ),
     );
     
     if (response.statusCode == 200) {
@@ -38,9 +62,11 @@ class ApiService {
 
   Future<Workout> getWorkout(String id) async {
     final headers = await _getHeaders();
-    final response = await client.get(
-      Uri.parse('$baseUrl/workouts/$id'),
-      headers: headers,
+    final response = await _handleResponse(
+      await client.get(
+        Uri.parse('$baseUrl/workouts/$id'),
+        headers: headers,
+      ),
     );
     
     if (response.statusCode == 200) {
@@ -53,10 +79,12 @@ class ApiService {
 
   Future<Workout> createWorkout(Workout workout) async {
     final headers = await _getHeaders();
-    final response = await client.post(
-      Uri.parse('$baseUrl/workouts/'),
-      headers: headers,
-      body: json.encode(workout.toJson()),
+    final response = await _handleResponse(
+      await client.post(
+        Uri.parse('$baseUrl/workouts/'),
+        headers: headers,
+        body: json.encode(workout.toJson()),
+      ),
     );
     
     if (response.statusCode == 201) {
@@ -69,10 +97,12 @@ class ApiService {
 
   Future<Workout> updateWorkout(String id, Workout workout) async {
     final headers = await _getHeaders();
-    final response = await client.put(
-      Uri.parse('$baseUrl/workouts/$id'),
-      headers: headers,
-      body: json.encode(workout.toJsonForUpdate()),
+    final response = await _handleResponse(
+      await client.put(
+        Uri.parse('$baseUrl/workouts/$id'),
+        headers: headers,
+        body: json.encode(workout.toJsonForUpdate()),
+      ),
     );
     
     if (response.statusCode == 200) {
@@ -85,9 +115,11 @@ class ApiService {
 
   Future<void> deleteWorkout(String id) async {
     final headers = await _getHeaders();
-    final response = await client.delete(
-      Uri.parse('$baseUrl/workouts/$id'),
-      headers: headers,
+    final response = await _handleResponse(
+      await client.delete(
+        Uri.parse('$baseUrl/workouts/$id'),
+        headers: headers,
+      ),
     );
     
     if (response.statusCode != 204) {
@@ -117,7 +149,9 @@ class ApiService {
     params['limit'] = limit.toString();
     
     final uri = Uri.parse('$baseUrl/exercises/').replace(queryParameters: params);
-    final response = await client.get(uri, headers: headers);
+    final response = await _handleResponse(
+      await client.get(uri, headers: headers),
+    );
     
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
@@ -133,9 +167,11 @@ class ApiService {
 
   Future<Exercise> getExercise(String id) async {
     final headers = await _getHeaders();
-    final response = await client.get(
-      Uri.parse('$baseUrl/exercises/$id'),
-      headers: headers,
+    final response = await _handleResponse(
+      await client.get(
+        Uri.parse('$baseUrl/exercises/$id'),
+        headers: headers,
+      ),
     );
     
     if (response.statusCode == 200) {
@@ -151,10 +187,12 @@ class ApiService {
 
   Future<Exercise> createExercise(Exercise exercise) async {
     final headers = await _getHeaders();
-    final response = await client.post(
-      Uri.parse('$baseUrl/exercises/'),
-      headers: headers,
-      body: json.encode(exercise.toJson()),
+    final response = await _handleResponse(
+      await client.post(
+        Uri.parse('$baseUrl/exercises/'),
+        headers: headers,
+        body: json.encode(exercise.toJson()),
+      ),
     );
     
     if (response.statusCode == 200) {
@@ -171,10 +209,12 @@ class ApiService {
 
   Future<Exercise> updateExercise(String id, Exercise exercise) async {
     final headers = await _getHeaders();
-    final response = await client.put(
-      Uri.parse('$baseUrl/exercises/$id'),
-      headers: headers,
-      body: json.encode(exercise.toJson()),
+    final response = await _handleResponse(
+      await client.put(
+        Uri.parse('$baseUrl/exercises/$id'),
+        headers: headers,
+        body: json.encode(exercise.toJson()),
+      ),
     );
     
     if (response.statusCode == 200) {
@@ -190,9 +230,11 @@ class ApiService {
 
   Future<void> deleteExercise(String id) async {
     final headers = await _getHeaders();
-    final response = await client.delete(
-      Uri.parse('$baseUrl/exercises/$id'),
-      headers: headers,
+    final response = await _handleResponse(
+      await client.delete(
+        Uri.parse('$baseUrl/exercises/$id'),
+        headers: headers,
+      ),
     );
     
     if (response.statusCode != 200 && response.statusCode != 404) {
@@ -203,9 +245,11 @@ class ApiService {
 
   Future<List<Exercise>> seedExercises() async {
     final headers = await _getHeaders();
-    final response = await client.post(
-      Uri.parse('$baseUrl/exercises/seed'),
-      headers: headers,
+    final response = await _handleResponse(
+      await client.post(
+        Uri.parse('$baseUrl/exercises/seed'),
+        headers: headers,
+      ),
     );
     
     if (response.statusCode == 200) {
@@ -243,7 +287,9 @@ class ApiService {
     if (rpe != null) params['rpe'] = rpe.toString();
     
     final uri = Uri.parse('$baseUrl/exercises/$exerciseId/log').replace(queryParameters: params);
-    final response = await client.post(uri, headers: headers);
+    final response = await _handleResponse(
+      await client.post(uri, headers: headers),
+    );
     
     if (response.statusCode != 200 && response.statusCode != 404) {
       throw Exception('Failed to log exercise usage: ${response.statusCode}');

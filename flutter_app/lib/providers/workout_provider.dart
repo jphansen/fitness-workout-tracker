@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/workout.dart';
 import '../services/api_service.dart';
+import '../services/auth_exception.dart';
 
 class WorkoutProvider with ChangeNotifier {
   final ApiService _apiService;
@@ -25,7 +26,11 @@ class WorkoutProvider with ChangeNotifier {
     } catch (e) {
       _error = e.toString();
       notifyListeners();
-      rethrow;
+      
+      // Don't rethrow authentication errors - they're handled by AuthService
+      if (e is! AuthenticationException) {
+        rethrow;
+      }
     } finally {
       _setLoading(false);
     }
@@ -43,7 +48,12 @@ class WorkoutProvider with ChangeNotifier {
     } catch (e) {
       _error = e.toString();
       notifyListeners();
-      rethrow;
+      
+      // Don't rethrow authentication errors - they're handled by AuthService
+      if (e is! AuthenticationException) {
+        rethrow;
+      }
+      return workout; // Return the original workout if auth fails
     } finally {
       _setLoading(false);
     }
@@ -64,7 +74,12 @@ class WorkoutProvider with ChangeNotifier {
     } catch (e) {
       _error = e.toString();
       notifyListeners();
-      rethrow;
+      
+      // Don't rethrow authentication errors - they're handled by AuthService
+      if (e is! AuthenticationException) {
+        rethrow;
+      }
+      return workout; // Return the original workout if auth fails
     } finally {
       _setLoading(false);
     }
@@ -81,7 +96,11 @@ class WorkoutProvider with ChangeNotifier {
     } catch (e) {
       _error = e.toString();
       notifyListeners();
-      rethrow;
+      
+      // Don't rethrow authentication errors - they're handled by AuthService
+      if (e is! AuthenticationException) {
+        rethrow;
+      }
     } finally {
       _setLoading(false);
     }

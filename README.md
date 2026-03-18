@@ -12,7 +12,9 @@ A full-stack workout tracking application with Flutter frontend and FastAPI back
 - **Dark Theme**: Modern dark theme UI with Material Design
 - **REST API**: FastAPI backend with MongoDB integration
 - **State Management**: Provider pattern for efficient state management
-- **Authentication**: JWT-based user authentication with auto-login via credential caching
+- **Authentication**: JWT-based user authentication with automatic credential caching
+- **Session Management**: Automatic token validation and session timeout handling
+- **Error Handling**: Graceful handling of authentication errors with auto-logout on expired tokens
 
 ## Project Structure
 
@@ -191,12 +193,10 @@ This will set all existing exercises to `type='weight'` by default.
 
 ## Recent Updates
 
-- ✅ **Credential Caching & Auto-Login**: Implemented secure credential caching with loading screen, allowing users to stay logged in across app restarts
-- ✅ **Offline Support**: Added local storage persistence for exercises with graceful fallback when backend is unavailable
-- ✅ **Error Handling**: Implemented comprehensive error handling for 404 and backend connectivity issues
-- ✅ **Exercise Provider Enhancements**: Added `loadExercisesWithFallback`, `createExerciseWithFallback`, and other fallback methods
-- ✅ **Shared Preferences**: Integrated `shared_preferences` package for persistent local storage
-- ✅ **Default Exercises**: Added default exercise seeding for when no backend or local data exists
+- ✅ Added automatic session management with token validation
+- ✅ Implemented authentication error handling with auto-logout on expired tokens
+- ✅ Created custom authentication exception classes for better error handling
+- ✅ Integrated 401 response handling across all API calls
 - ✅ Removed template system, simplified to Exercise Library → Workouts workflow
 - ✅ Added exercise type support (weight/cardio) with conditional fields
 - ✅ Fixed null type errors in exercise logging
@@ -213,10 +213,7 @@ This will set all existing exercises to `type='weight'` by default.
 4. **Export Data**: Export workouts to CSV or PDF
 5. **Notifications**: Reminders for workout schedules
 6. **Social Features**: Share workouts with friends
-7. **Data Sync**: Two-way sync between local storage and backend when connectivity is restored
-8. **Workout Offline Support**: Extend offline functionality to workouts and user data
-9. **Backup/Restore**: Cloud backup of local data
-10. **Conflict Resolution**: Handle data conflicts when syncing after offline edits
+7. **Offline Support**: Local storage for offline functionality
 
 ## Requirements Met
 
@@ -231,8 +228,6 @@ This will set all existing exercises to `type='weight'` by default.
 - [x] JWT authentication
 - [x] Dark theme UI
 - [x] Complete CRUD operations for workouts
-- [x] **Offline Support**: Local storage with graceful fallback when backend is unavailable
-- [x] **Error Handling**: Comprehensive error handling for backend connectivity issues
 
 ## GitHub Repository Setup
 

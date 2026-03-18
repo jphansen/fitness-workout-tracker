@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/exercise.dart';
 import '../services/api_service.dart';
+import '../services/auth_exception.dart';
 
 class ExerciseProvider with ChangeNotifier {
   final ApiService _apiService;
@@ -46,7 +47,11 @@ class ExerciseProvider with ChangeNotifier {
     } catch (e) {
       _error = e.toString();
       notifyListeners();
-      rethrow;
+      
+      // Don't rethrow authentication errors - they're handled by AuthService
+      if (e is! AuthenticationException) {
+        rethrow;
+      }
     } finally {
       _setLoading(false);
     }
@@ -64,7 +69,12 @@ class ExerciseProvider with ChangeNotifier {
     } catch (e) {
       _error = e.toString();
       notifyListeners();
-      rethrow;
+      
+      // Don't rethrow authentication errors - they're handled by AuthService
+      if (e is! AuthenticationException) {
+        rethrow;
+      }
+      return exercise; // Return the original exercise if auth fails
     } finally {
       _setLoading(false);
     }
@@ -85,7 +95,12 @@ class ExerciseProvider with ChangeNotifier {
     } catch (e) {
       _error = e.toString();
       notifyListeners();
-      rethrow;
+      
+      // Don't rethrow authentication errors - they're handled by AuthService
+      if (e is! AuthenticationException) {
+        rethrow;
+      }
+      return exercise; // Return the original exercise if auth fails
     } finally {
       _setLoading(false);
     }
@@ -102,7 +117,11 @@ class ExerciseProvider with ChangeNotifier {
     } catch (e) {
       _error = e.toString();
       notifyListeners();
-      rethrow;
+      
+      // Don't rethrow authentication errors - they're handled by AuthService
+      if (e is! AuthenticationException) {
+        rethrow;
+      }
     } finally {
       _setLoading(false);
     }
@@ -120,7 +139,12 @@ class ExerciseProvider with ChangeNotifier {
     } catch (e) {
       _error = e.toString();
       notifyListeners();
-      rethrow;
+      
+      // Don't rethrow authentication errors - they're handled by AuthService
+      if (e is! AuthenticationException) {
+        rethrow;
+      }
+      return []; // Return empty list if auth fails
     } finally {
       _setLoading(false);
     }
@@ -175,7 +199,11 @@ class ExerciseProvider with ChangeNotifier {
     } catch (e) {
       _error = e.toString();
       notifyListeners();
-      rethrow;
+      
+      // Don't rethrow authentication errors - they're handled by AuthService
+      if (e is! AuthenticationException) {
+        rethrow;
+      }
     }
   }
 

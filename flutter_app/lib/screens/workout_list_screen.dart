@@ -285,13 +285,21 @@ class _WorkoutListScreenState extends State<WorkoutListScreen> {
             ),
           );
         },
-        onLongPress: () {
-          Navigator.push(
+        onLongPress: () async {
+          final result = await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => CreateWorkoutScreen(workoutToEdit: workout),
             ),
           );
+          // Refresh data after returning from edit screen if workout was saved
+          if (result == true && mounted) {
+            Future.delayed(const Duration(milliseconds: 300), () {
+              if (mounted) {
+                _loadData();
+              }
+            });
+          }
         },
       ),
     );

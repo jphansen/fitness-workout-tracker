@@ -1,0 +1,34 @@
+In the backend we need a new endpoint called: exercises 
+
+Data for excersises are in two different categories: cardio & strength. 
+
+A cardio record will have following parameters (demo data, simply to be able to extract datatype):
+
+{"type": "cardio",
+"id": autoincrement,
+"name": "Name of excercise",
+"minutes": 30,
+"level": 10,
+"steps": 100,
+"distance": 10.8,
+"": 0,
+"calories": 400}
+
+A strength record will have following parameters:
+
+{"type": "weight",
+"id": autoincrement,
+"name": "Name of excercise",
+"sets": 3,
+"repetitions": 10,
+"weight": 40.5,
+"calories": 400}
+
+Unique field are "id" (which may be the mongodb _id) and "name"
+
+-- Phase 2 --
+Note: we need to get excersises to be "templates" instead of final records as it is now. Eg. for cardio fx. there should oinly be the fields that may make basis for the calcucations.
+
+-- PHASE 3 --
+
+We need to append "excersises" to the frontend (already implemented in the backend on https://fitness.asvig.com/docs). Make a new menu items and do a CRUD on excersises. As for the "type" this should be a pulldown or alike, where the user only may choorse between "cardio" and "weight"

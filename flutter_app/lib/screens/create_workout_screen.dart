@@ -172,7 +172,7 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
               ),
             );
             if (mounted) {
-              Navigator.pop(context);
+              Navigator.pop(context, true); // Return true to indicate workout was saved
             }
           } catch (updateError) {
             // If update fails, offer to create a new copy instead
@@ -207,9 +207,9 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
                     duration: Duration(seconds: 4),
                   ),
                 );
-                if (mounted) {
-                  Navigator.pop(context);
-                }
+            if (mounted) {
+              Navigator.pop(context, true); // Return true to indicate workout was saved
+            }
               }
             }
           }
@@ -221,9 +221,9 @@ class _CreateWorkoutScreenState extends State<CreateWorkoutScreen> {
               duration: Duration(seconds: 4),
             ),
           );
-          if (mounted) {
-            Navigator.pop(context);
-          }
+            if (mounted) {
+              Navigator.pop(context, true); // Return true to indicate workout was saved
+            }
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(

@@ -16,13 +16,18 @@ class WorkoutDetailScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => CreateWorkoutScreen(workoutToEdit: workout),
                 ),
               );
+              // The workout list screen will refresh when we return if workout was saved
+              // We need to pop this detail screen to see the updated list
+              if (context.mounted) {
+                Navigator.pop(context);
+              }
             },
             tooltip: 'Edit workout',
           ),
